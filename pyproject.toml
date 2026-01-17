@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "history-cartopy"
+version = "0.1.0"
+description = "Create beautiful historical maps from YAML manifests"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Chetan Vaity"}
+]
+keywords = ["cartography", "maps", "history", "visualization", "matplotlib", "cartopy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "cartopy>=0.21.0",
+    "matplotlib>=3.5.0",
+    "numpy>=1.20.0",
+    "Pillow>=9.0.0",
+    "PyYAML>=6.0",
+    "shapely>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+history-map = "history_cartopy.render_map:main"
+
+[project.urls]
+Homepage = "https://github.com/chetanvaity/history-cartopy"
+Repository = "https://github.com/chetanvaity/history-cartopy"
+Issues = "https://github.com/chetanvaity/history-cartopy/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+history_cartopy = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

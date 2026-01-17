@@ -1,0 +1,201 @@
+# =============================================================================
+# MAP MANIFEST REFERENCE
+# =============================================================================
+# This file documents all available options for creating history maps.
+# Copy this file as a starting point and modify for your map.
+#
+# Required sections: metadata, labels
+# Optional sections: campaigns, territories, events, icons
+
+# =============================================================================
+# METADATA (required)
+# =============================================================================
+metadata:
+  title: "Your Map Title"              # Displayed in the title bar
+  year: 1658                           # Use negative for BCE (e.g., -334)
+
+  # Geographic bounds: [west_lon, east_lon, south_lat, north_lat]
+  extent: [71, 78, 18.5, 27]
+
+  # Background resolution:
+  #   "dev"         - Coastlines only (fast, for testing)
+  #   "low"         - Stock image
+  #   "med"         - Natural Earth medium resolution
+  #   "high"        - Natural Earth high resolution
+  #   "med-yellow"  - Medium res with parchment tint
+  #   "high-yellow" - High res with parchment tint
+  resolution: "high-yellow"
+
+  output: "output-filename.png"
+
+  # Image dimensions in pixels [width, height]
+  # - Must be 3:2 aspect ratio
+  # - Recommended: divisible by 300 (DPI) and 200 (tile size)
+  # - Common sizes: [3600, 2400], [4800, 3200], [6000, 4000]
+  dimensions: [3600, 2400]
+
+  # Path to icon set (relative to data/ directory)
+  iconset: "iconsets/bwicons"
+
+  # Optional: decorative border style
+  # border_style: "mughal"
+
+  # Optional: lat/lon graticule (grid lines and labels on borders)
+  # Useful for placing labels and as reference information
+  #
+  # Simple usage (labels only, no grid lines):
+  graticule: true
+  #
+  # Advanced usage (control lines and labels separately):
+  # graticule:
+  #   labels: true                   # Show lat/lon values on borders
+  #   lines: true                    # Show dashed grid lines on map
+
+  # Optional: scale bar showing kilometers and miles
+  # Automatically calculates appropriate scale based on map extent
+  #
+  # Simple usage (default position bottom-left):
+  scale_bar: true
+  #
+  # With position: "bottom-left", "bottom-right", "top-left", "top-right"
+  # scale_bar: "bottom-right"
+
+# =============================================================================
+# LABELS (required)
+# =============================================================================
+labels:
+  # ---------------------------------------------------------------------------
+  # CITIES
+  # ---------------------------------------------------------------------------
+  # Cities are looked up in the gazetteer (data/city-locations.yaml)
+  #
+  # Levels determine visual style:
+  #   1 - Capital/major city: large ring dot, bold label, capital icon
+  #   2 - Regular city: medium solid dot, normal label, city icon
+  #   3 - Small town: small solid dot, small label, city icon
+  #
+  cities:
+    - name: "CityName"                 # Must match gazetteer entry
+      level: 1                         # 1, 2, or 3
+
+    # All optional fields:
+    - name: "AnotherCity"
+      level: 2
+      display_as: "Alternate Name"     # Override the displayed label
+      offset: [10, -5]                 # Manual label offset [x, y] in points
+      icon: "custom-icon"              # Override default icon
+      # icon: false                    # Suppress icon entirely
+
+  # ---------------------------------------------------------------------------
+  # RIVERS
+  # ---------------------------------------------------------------------------
+  # Rivers use direct coordinates (not gazetteer)
+  #
+  rivers:
+    - name: "River Name"
+      coords: [74.5, 22.0]             # [longitude, latitude]
+      rotation: 15                     # Degrees, counter-clockwise
+
+  # ---------------------------------------------------------------------------
+  # REGIONS
+  # ---------------------------------------------------------------------------
+  # Large faint labels for geographic regions
+  #
+  regions:
+    - name: "REGION NAME"
+      coords: [75.0, 24.0]
+      rotation: 0
+
+# =============================================================================
+# CAMPAIGNS (optional)
+# =============================================================================
+# Arrows showing troop movements between locations.
+#
+# Styles (defined in stylemaps.py):
+#   "invasion" - Bold red solid arrow (main force)
+#   "power"    - Similar to invasion
+#   "boring"   - Dashed orange arrow (secondary movement)
+#   "retreat"  - Grey dash-dot arrow
+#
+campaigns:
+  - name: "Campaign Name"              # For your reference (not displayed)
+    path: ["StartCity", "EndCity"]     # City names from gazetteer
+    style: "invasion"                  # Arrow style
+    label_above: "Commander Name"      # Text above arrow (optional)
+    label_below: "Date"                # Text below arrow (optional)
+    rad: 0.3                           # Curvature (optional, default 0.3)
+
+  # Path can also use raw coordinates:
+  - name: "Custom Route"
+    path: [[73.0, 21.0], [75.5, 23.0]] # [lon, lat] pairs
+    style: "boring"
+
+# =============================================================================
+# TERRITORIES (optional)
+# =============================================================================
+# Shaded regions from GeoJSON files (in data/polygons/ directory)
+#
+# Render types:
+#   "fuzzy-fill"     - Soft gradient fill
+#   "hatched"        - Diagonal line pattern
+#   "edge-tint"      - Tinted border only
+#   "edge-tint-fill" - Tinted border with light fill
+#
+# Styles (defined in stylemaps.py):
+#   "empire", "kingdom1", "kingdom2", "kingdom3", "kingdom-purple"
+#
+territories:
+  - file: "territory.geojson"          # File in data/polygons/
+    style: "empire"
+    type: "fuzzy-fill"
+
+# =============================================================================
+# EVENTS (optional)
+# =============================================================================
+# Standalone labels for battles, crossings, treaties, etc.
+# Renders as: [icon] + text (line 1) + date (line 2)
+#
+# Text styling: sans-serif font, maroon color (distinct from city labels)
+#
+events:
+  # Minimal event (no icon, centered text)
+  - text: "Event Description"
+    date: "Date"
+    coords: [75.0, 22.0]               # Direct coordinates
+
+  # Event at a gazetteer location
+  - text: "Battle Name"
+    location: "CityName"               # Looked up in gazetteer
+    date: "Date"
+
+  # Event with icon
+  - text: "Battle Name"
+    location: "CityName"
+    date: "Date"
+    icon: "battle"                     # Icon from iconset
+
+    # label_angle: where to place text relative to icon
+    #   0   = North (above)
+    #   90  = East (right) - default
+    #   180 = South (below)
+    #   270 = West (left)
+    label_angle: 90
+
+    # icon_centered: how icon aligns to the coordinate
+    #   false (default) = icon's bottom-center at coordinate
+    #   true            = icon's center at coordinate
+    icon_centered: false
+
+    rotation: 0                        # Rotate text (optional)
+
+# =============================================================================
+# ICONS (optional)
+# =============================================================================
+# Standalone icons not attached to cities (decorative symbols, army markers)
+#
+icons:
+  - type: "icon-name"                  # Icon filename (without .png)
+    coords: [74.0, 23.0]               # Direct coordinates
+    # OR
+    # location: "CityName"             # Gazetteer location
+    offset: [0, 10]                    # Offset from location (optional)

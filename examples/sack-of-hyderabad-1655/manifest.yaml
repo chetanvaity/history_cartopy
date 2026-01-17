@@ -1,0 +1,69 @@
+# The Deccan in 1655
+metadata:
+  title: "Golconda"
+  year: 1655
+  extent: [70, 83, 13, 21] # [MinLon, MaxLon, MinLat, MaxLat]
+  background: "natural_earth"
+  resolution: "dev"  # [dev, low, med-yellow, high-yellow] Use dev for quick testing (coastlines only), 
+  output: "sack-of-hyderabad-1655.png" # Output filename
+  dimensions: [3600, 2400]  # pixels (3:2 ratio, divisible by 300 DPI and 200 tile size)
+  border_style: "test"  # Use "test" border tiles
+  iconset: "iconsets/bwicons"
+
+labels:
+  cities:
+    - name: Hyderabad
+      level: 1
+    - name: Bijapur
+      level: 1
+    - name: Aurangabad
+      level: 2
+    - name: Burhanpur
+      level: 2
+    - name: Masulipatnam
+      level: 2
+    - name: Bezwada
+      level: 3
+    - name: Nanded
+      level: 3
+
+  # Features that require manual placement/rotation per map
+  rivers:
+    - name: "Krishna"
+      coords: [79.2, 16.6]
+      rotation: 10
+    - name: "Godavari"
+      coords: [77.6, 18.85]
+      rotation: 10
+
+  regions:
+    - name: "Deccan"
+      coords: [77.0, 20.0]
+      spacing: 2
+
+# These are essentially arrows showing troop movements
+# Styles are "invasion, power, boring"
+campaigns:
+  - name: "Muhammad Sultan"
+    path: ["Nanded", "Hyderabad"]
+    style: "invasion"
+    rad: -0.1
+    label_above: "M. Sultan"
+    label_below: "Jan 1666"
+  - name: "Aurangzeb"
+    path: ["Aurangabad", "Hyderabad"]
+    style: "boring"
+    rad: 0.2
+    label_above: "Aurangzeb"
+    label_below: "Feb 1666"
+
+# The territories are drawn using geoJSON polygons
+territories:
+  - name: "Qutb Shahi Kingdom"
+    file: "golconda-1655.geojson"
+    style: "kingdom3"
+    type: "edge-tint"
+  - name: "Bijapur Kingdom"
+    file: "bijapur-1655.geojson"
+    style: "kingdom-purple"
+    type: "edge-tint"

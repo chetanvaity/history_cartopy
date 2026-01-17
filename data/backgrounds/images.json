@@ -1,0 +1,12 @@
+{
+  "__comment__": "JSON file for Natural Earth backgrounds",
+  "ne_hyp": {
+    "__comment__": "Natural Earth Shaded Relief",
+    "__projection__": "PlateCarree",
+    "__source__": "Natural Earth",
+    "high": "HYP_HR_SR_OB_DR.tif",
+    "med": "HYP_LR_SR_OB_DR.tif",
+    "med-yellow": "HYP_LR_SR_OB_DR_YELLOW.tif",
+    "high-yellow": "HYP_HR_SR_OB_DR_YELLOW.tif"
+   }
+}

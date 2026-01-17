@@ -1,0 +1,101 @@
+import matplotlib.patheffects as PathEffects
+from matplotlib.transforms import offset_copy
+import cartopy.crs as ccrs
+import matplotlib.patches as patches
+import numpy as np
+import json
+from shapely.geometry import shape
+import cartopy.feature as cfeature
+from history_cartopy.stylemaps import *
+from history_cartopy.styles import *
+
+
+def apply_fuzzy_fill_territory(ax, geometry, style_key):
+    style = TERRITORY_STYLES.get(style_key).copy()
+    dpp = get_deg_per_pt(ax)
+
+    # Balanced stack: -4pt to +4pt
+    for pt in [-4, -2, 0, 2, 4]:
+        layer_alpha = style['alpha'] / (1 + abs(pt))
+        ax.add_geometries([geometry.buffer(pt * dpp)], ccrs.PlateCarree(),
+                          facecolor=style['facecolor'], alpha=layer_alpha, edgecolor='none', zorder=1)
+
+def apply_hatched_territory(ax, geometry, style_key):
+    style = TERRITORY_STYLES.get(style_key).copy()
+    # 1. Background Glow (very faint)
+    apply_fuzzy_fill_territory(ax, geometry, style_key) # uses alpha from style
+
+    # 2. Sharp Hatching
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none', edgecolor=style['edgecolor'],
+                      hatch=style.get('hatch', '////'), linewidth=0, alpha=0.3, zorder=2)
+
+def apply_edge_tint_fill_territory(ax, geometry, style_key):
+    style = TERRITORY_STYLES.get(style_key).copy()
+    dpp = get_deg_per_pt(ax)
+    color = style['facecolor']
+    base_alpha = style.get('alpha', 0.4)
+
+    # We define steps that only go INWARD (negative pt values)
+    # 0 is the sharp boundary. -2, -4, -6 are deeper into the kingdom.
+    pt_steps = [0, -2, -4, -6]
+
+    for i, pt in enumerate(pt_steps):
+        # Shrink the geometry inward
+        layer_geom = geometry.buffer(pt * dpp)
+
+        # Calculate a decaying alpha:
+        # The first layer (pt=0) is the most opaque.
+        layer_alpha = base_alpha / (i + 1)
+
+        ax.add_geometries([layer_geom], ccrs.PlateCarree(),
+                          facecolor=color,
+                          alpha=layer_alpha,
+                          edgecolor='none',
+                          zorder=1)
+
+    # Draw one very thin solid line on the boundary to keep it crisp
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none',
+                      edgecolor=color,
+                      linewidth=0.8,
+                      alpha=base_alpha,
+                      zorder=2)
+
+def apply_edge_tint_territory(ax, geometry, style_key):
+    style = TERRITORY_STYLES.get(style_key).copy()
+    dpp = get_deg_per_pt(ax)
+    color = style['facecolor']
+    base_alpha = style.get('alpha', 0.4)
+
+    # We want a ribbon that is, say, 8 points wide total.
+    # We will draw 4 concentric rings, each 2 points wide,
+    # moving from the edge toward the center.
+    steps = [0, -2, -4, -6] # pt offsets inward
+
+    for i in range(len(steps) - 1):
+        outer_pt = steps[i]
+        inner_pt = steps[i+1]
+
+        # Create the 'donut' slice for this layer
+        outer_geom = geometry.buffer(outer_pt * dpp)
+        inner_geom = geometry.buffer(inner_pt * dpp)
+        ribbon_slice = outer_geom.difference(inner_geom)
+
+        # Fade the alpha as we move deeper into the kingdom
+        layer_alpha = base_alpha / (i + 1)
+
+        ax.add_geometries([ribbon_slice], ccrs.PlateCarree(),
+                          facecolor=color,
+                          alpha=layer_alpha,
+                          edgecolor='none',
+                          zorder=1)
+
+    # A crisp line exactly on the border
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none',
+                      edgecolor=color,
+                      linewidth=0.6,
+                      alpha=base_alpha,
+                      zorder=2)
+

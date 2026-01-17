@@ -1,0 +1,48 @@
+# Master Database of Historical Coordinates
+# Format: Common_Name: [Longitude, Latitude]
+
+locations:
+
+  # ===========================================================================
+  # INDIA - Deccan & Central
+  # ===========================================================================
+  Aurangabad: [75.34, 19.87]
+  Hyderabad: [78.48, 17.37]
+  Bijapur: [75.71, 16.82]
+  Golconda: [78.40, 17.38]
+  Burhanpur: [76.23, 21.31]
+  Surat: [72.83, 21.17]
+  Masulipatnam: [81.13, 16.18]
+  Pune: [73.85, 18.52]
+  Bezwada: [80.64, 16.50] # Modern Vijayawada
+  Nanded: [77.30, 19.15]      # Mughal frontier post on the Godavari
+  Gandikota: [78.28, 14.81]   # Mir Jumla's impregnable rock fort on the Pennar
+  Sidhout: [78.93, 14.47]     # 9 miles due east of Cuddapa (Kadapa)
+  Cuddapa: [78.82, 14.47]     # Modern Kadapa; central to Mir Jumla's Karnatak holdings
+  Masulipatam: [81.13, 16.18] # Modern Machilipatnam; the primary port of Golkonda
+  Akbarpur: [75.45, 22.15]
+  Dipalpur: [75.54, 22.84]
+  Dharmat: [75.63, 23.00]
+  Ujjain: [75.79, 23.18]
+
+  # ===========================================================================
+  # INDIA - North & Gujarat
+  # ===========================================================================
+  Gwalior: [78.18, 26.22]
+  Dholpur: [77.89, 26.70]
+  Bhadaoli: [78.23, 26.75]
+  Samugarh: [78.10, 27.12]
+  Agra: [78.01, 27.18]
+  Ahmedabad: [72.57, 23.02]
+  Jodhpur: [73.02, 26.23]
+
+  # ===========================================================================
+  # ANATOLIA & PERSIA - Alexander's Campaigns
+  # ===========================================================================
+  Sardis: [28.04, 38.47]           # Lydian capital, western Anatolia
+  Issus: [36.18, 36.83]            # Battle site, southern Anatolia
+  Tarsus: [34.89, 36.92]           # Cilicia
+  Gaugamela: [43.45, 36.56]        # Battle site near Mosul
+  Babylon: [44.42, 32.54]          # Mesopotamia
+  Susa: [48.26, 32.19]             # Persian administrative capital
+  Persepolis: [52.89, 29.93]       # Ceremonial capital of Persia

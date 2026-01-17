@@ -1,0 +1,73 @@
+# Map 1: The Advance from the Deccan (Feb - April 1658)
+metadata:
+  title: "The Advance from the Deccan"
+  year: 1658
+  extent: [71, 78, 18.5, 27]
+  background: "natural_earth"
+  resolution: "high-yellow"
+  output: "advance-from-deccan-1658.png"
+  dimensions: [3600, 2400]
+  iconset: "iconsets/bwicons"
+
+labels:
+  cities:
+    - name: "Aurangabad"
+      level: 1
+      icon: false
+    - name: "Burhanpur"
+      level: 1
+      icon: false
+    - name: "Ujjain"
+      level: 1
+      icon: false
+    - name: "Ahmedabad"
+      level: 1
+      icon: false
+    - name: "Jodhpur"
+      level: 1
+      icon: false
+
+  rivers:
+    - name: "Narmada"
+      coords: [74.45, 22.14]
+      rotation: 10
+    - name: "Tapti"
+      coords: [75.50, 21.13]
+      rotation: 0
+
+campaigns:
+  # Aurangzeb's segmented march
+  - name: "Aurangzeb Phase 1"
+    path: ["Aurangabad", "Burhanpur"]
+    style: "boring"
+    label_above: "Aurangzeb"
+    label_below: "Feb 5"
+  - name: "Aurangzeb Phase 2"
+    path: ["Burhanpur", "Akbarpur"]
+    style: "boring"
+  - name: "Aurangzeb Phase 3"
+    path: ["Akbarpur", "Dipalpur"]
+    style: "boring"
+
+  # Murad's segmented march
+  - name: "Murad Phase 1"
+    path: ["Ahmedabad", "Dipalpur"]
+    style: "power"
+    label_above: "Murad"
+
+  # Imperial Defense
+  - name: "Imperial Force"
+    path: ["Jodhpur", "Ujjain"]
+    style: "boring"
+    label_above: "Jaswant Singh"
+
+events:
+  - text: "Crossing"
+    date: "Apr 3"
+    coords: [76.0, 22.2]
+  - text: "Dharmat"
+    location: "Dharmat"
+    date: "Apr 15"
+    icon: "battle"
+    icon_centered: true
+    label_angle: 270

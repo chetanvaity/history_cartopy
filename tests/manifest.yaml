@@ -1,0 +1,19 @@
+metadata:
+  title: "Border Test Map"
+  year: 2026
+  extent: [70, 85, 13, 23]  # India region
+  background: "natural_earth"
+  resolution: "low"
+  output: "border-test.png"
+  dimensions: [3000, 2000]  # pixels (width × height) - must be 3:2 ratio
+  border_style: "test"  # References data/borders/test/
+
+labels:
+  capitals:
+    - name: Hyderabad
+
+  cities:
+    - name: Aurangabad
+
+territories: []
+campaigns: []
