@@ -6,7 +6,7 @@ Create beautiful historical maps from declarative YAML manifests with decorative
 
 | Sack of Hyderabad (1655) | Advance from Deccan (1658) | Tactical Agra (1658) |
 |:------------------------:|:--------------------------:|:--------------------:|
-| ![Sack of Hyderabad](sack-of-hyderabad-1655.png) | ![Advance from Deccan](advance-from-deccan-1658.png) | ![Tactical Agra](tactical-agra-1658.png) |
+| ![Sack of Hyderabad](sack-of-hyderabad-16535.png) | ![Advance from Deccan](advance-from-deccan-1658.png) | ![Tactical Agra](tactical-agra-1658.png) |
 
 ## Features
 
