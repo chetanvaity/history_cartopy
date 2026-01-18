@@ -2,7 +2,7 @@
 metadata:
   title: "Golconda"
   year: 1655
-  extent: [70, 83, 13, 21] # [MinLon, MaxLon, MinLat, MaxLat]
+  extent: [70, 85, 13, 23] # [MinLon, MaxLon, MinLat, MaxLat]
   background: "natural_earth"
   resolution: "dev"  # [dev, low, med-yellow, high-yellow] Use dev for quick testing (coastlines only), 
   output: "sack-of-hyderabad-1655.png" # Output filename
