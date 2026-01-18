@@ -2,12 +2,99 @@
 
 import argparse
 import os
+import sys
+import urllib.request
+import zipfile
+import shutil
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from PIL import Image
 from history_cartopy.core import load_data, render_labels, render_campaigns, render_territories, render_events
 from history_cartopy.border_styles import render_border
+
+
+# Natural Earth background image download URLs
+BACKGROUND_DOWNLOADS = {
+    'HYP_HR_SR_OB_DR.tif': {
+        'url': 'https://naciscdn.org/naturalearth/10m/raster/HYP_HR_SR_OB_DR.zip',
+        'description': 'High resolution Natural Earth background (~400MB)',
+    },
+    'HYP_LR_SR_OB_DR.tif': {
+        'url': 'https://naciscdn.org/naturalearth/50m/raster/HYP_LR_SR_OB_DR.zip',
+        'description': 'Medium resolution Natural Earth background (~15MB)',
+    },
+}
+
+
+def download_backgrounds():
+    """Download Natural Earth background images to the data/backgrounds directory."""
+    # Determine backgrounds directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    backgrounds_dir = os.path.join(script_dir, '..', '..', 'data', 'backgrounds')
+    backgrounds_dir = os.path.normpath(backgrounds_dir)
+
+    os.makedirs(backgrounds_dir, exist_ok=True)
+
+    print(f"Downloading Natural Earth backgrounds to: {backgrounds_dir}")
+    print()
+
+    for tif_name, info in BACKGROUND_DOWNLOADS.items():
+        tif_path = os.path.join(backgrounds_dir, tif_name)
+
+        if os.path.exists(tif_path):
+            print(f"[SKIP] {tif_name} already exists")
+            continue
+
+        print(f"[DOWNLOAD] {info['description']}")
+        print(f"  URL: {info['url']}")
+
+        zip_name = os.path.basename(info['url'])
+        zip_path = os.path.join(backgrounds_dir, zip_name)
+
+        try:
+            # Download with progress
+            def report_progress(block_num, block_size, total_size):
+                downloaded = block_num * block_size
+                if total_size > 0:
+                    percent = min(100, downloaded * 100 // total_size)
+                    mb_downloaded = downloaded / (1024 * 1024)
+                    mb_total = total_size / (1024 * 1024)
+                    print(f"\r  Progress: {percent}% ({mb_downloaded:.1f}/{mb_total:.1f} MB)", end='', flush=True)
+
+            urllib.request.urlretrieve(info['url'], zip_path, reporthook=report_progress)
+            print()  # newline after progress
+
+            # Extract the tif file
+            print(f"  Extracting {tif_name}...")
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Find the tif file in the archive
+                tif_files = [f for f in zf.namelist() if f.endswith('.tif')]
+                if not tif_files:
+                    print(f"  [ERROR] No .tif file found in {zip_name}")
+                    continue
+
+                # Extract to temp location and move to proper name
+                zf.extract(tif_files[0], backgrounds_dir)
+                extracted_path = os.path.join(backgrounds_dir, tif_files[0])
+                if extracted_path != tif_path:
+                    shutil.move(extracted_path, tif_path)
+
+            # Clean up zip file
+            os.remove(zip_path)
+            print(f"  [OK] {tif_name}")
+
+        except Exception as e:
+            print(f"  [ERROR] Failed to download {tif_name}: {e}")
+            # Clean up partial files
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+
+    print()
+    print("Background download complete.")
+    print()
+    print("Note: The '-yellow' variants are custom files and must be created manually.")
+    print("Set environment variable: export CARTOPY_USER_BACKGROUNDS=" + backgrounds_dir)
 
 
 def _render_scale_bar(ax, extent, position='bottom-left'):
@@ -142,16 +229,27 @@ def _validate_dimensions(dimensions_px, dpi=300):
 def main():
     parser = argparse.ArgumentParser(description='History Map Renderer')
     parser.add_description = 'Render a historical map from a YAML manifest.'
-    
-    # 1. Positional argument for the manifest
-    parser.add_argument('manifest', help='Path to the map manifest YAML')
-    
+
+    # 1. Positional argument for the manifest (optional if --init is used)
+    parser.add_argument('manifest', nargs='?', help='Path to the map manifest YAML')
+
     # 2. Optional overrides
+    parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')
     parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow'], help='Override background resolution')
     parser.add_argument('--output', help='Override output filename')
     parser.add_argument('--no-show', action='store_true', help='Save file without opening window (good for SSH)')
 
     args = parser.parse_args()
+
+    # Handle --init: download backgrounds and exit
+    if args.init:
+        download_backgrounds()
+        return
+
+    # Require manifest for normal operation
+    if not args.manifest:
+        parser.error('manifest is required (unless using --init)')
+        return
 
     # Remove limit on large file sizes for high-res images
     Image.MAX_IMAGE_PIXELS = None
