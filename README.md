@@ -1,6 +1,6 @@
 # History Cartopy
 
-Create beautiful historical maps from declarative YAML manifests with decorative tiled borders.
+Create beautiful historical maps from declarative YAML manifests.
 
 ## Example Maps
 
@@ -13,8 +13,6 @@ Create beautiful historical maps from declarative YAML manifests with decorative
 - Declarative YAML-based map configuration
 - Support for territories, cities, campaigns (troop movements), and labels
 - Tiled PNG border system with customizable styles
-- 3:2 landscape aspect ratio for beautiful narrative maps
-- High-resolution output (300 DPI)
 
 ## Installation
 
@@ -142,10 +140,8 @@ history_cartopy/
 ## Creating Historical Maps
 
 1. Define your map in a YAML manifest (see `examples/reference-manifest.yaml`)
-2. Create or reuse GeoJSON files for territories
-3. Design border tiles for historical period (optional)
-4. Render the map: `history-map your-manifest.yaml`
-5. Output: High-resolution PNG with exact dimensions
+2. Create or reuse GeoJSON files for territories (Skip territories to begin with)
+3. Render the map: `history-map your-manifest.yaml`
 
 ## License
 
