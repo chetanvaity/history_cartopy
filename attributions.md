@@ -3,3 +3,4 @@
 - <a href="https://www.flaticon.com/free-icons/soldier" title="soldier icons">Soldier icons created by Freepik - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/parchment" title="parchment icons">Parchment icons created by Mayor Icons - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/chest" title="chest icons">Chest icons created by Freepik - Flaticon</a>
+- https://www.pinterest.com/umarsd243/

@@ -13,7 +13,7 @@ metadata:
   iconset: "iconsets/bwicons"
   graticule: true
   scale_bar: true
-  border_style: dhapo
+  border_style: test
 
 # =============================================================================
 # LABELS

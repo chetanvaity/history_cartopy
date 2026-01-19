@@ -24,15 +24,28 @@ BACKGROUND_DOWNLOADS = {
         'url': 'https://naciscdn.org/naturalearth/50m/raster/HYP_LR_SR_OB_DR.zip',
         'description': 'Medium resolution Natural Earth background (~15MB)',
     },
+    'HYP_HR_SR_OB_DR_YELLOW.tif': {
+        'url': 'https://home.chetanv.net/history_cartopy/HYP_HR_SR_OB_DR_YELLOW.zip',
+        'description': 'High resolution yellow variant background',
+    },
+    'HYP_LR_SR_OB_DR_YELLOW.tif': {
+        'url': 'https://home.chetanv.net/history_cartopy/HYP_LR_SR_OB_DR_YELLOW.zip',
+        'description': 'Low resolution yellow variant background',
+    },
 }
+
+
+def _get_data_dir():
+    """Get the data directory path, using package-relative path."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(script_dir, '..', '..', 'data')
+    return os.path.normpath(data_dir)
 
 
 def download_backgrounds():
     """Download Natural Earth background images to the data/backgrounds directory."""
     # Determine backgrounds directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    backgrounds_dir = os.path.join(script_dir, '..', '..', 'data', 'backgrounds')
-    backgrounds_dir = os.path.normpath(backgrounds_dir)
+    backgrounds_dir = os.path.join(_get_data_dir(), 'backgrounds')
 
     os.makedirs(backgrounds_dir, exist_ok=True)
 
@@ -92,9 +105,6 @@ def download_backgrounds():
 
     print()
     print("Background download complete.")
-    print()
-    print("Note: The '-yellow' variants are custom files and must be created manually.")
-    print("Set environment variable: export CARTOPY_USER_BACKGROUNDS=" + backgrounds_dir)
 
 
 def _render_scale_bar(ax, extent, position='bottom-left'):
@@ -253,10 +263,11 @@ def main():
 
     # Remove limit on large file sizes for high-res images
     Image.MAX_IMAGE_PIXELS = None
-    
-    backgrounds_dir = os.getenv("CARTOPY_USER_BACKGROUNDS")
-    polygons_dir = os.path.join(backgrounds_dir, '../polygons/')
-    gazetteer_path = os.path.join(backgrounds_dir, '../city-locations.yaml')    
+
+    data_dir = _get_data_dir()
+    backgrounds_dir = os.path.join(data_dir, 'backgrounds')
+    polygons_dir = os.path.join(data_dir, 'polygons')
+    gazetteer_path = os.path.join(data_dir, 'city-locations.yaml')
     gazetteer, manifest = load_data(gazetteer_path, args.manifest)
 
     # Resolve Settings (CLI overrides Manifest)
@@ -323,7 +334,6 @@ def main():
         gl.ylabel_style = {'size': 8, 'color': 'gray'}
 
     # Run Engine
-    data_dir = os.path.join(backgrounds_dir, '..')
     render_territories(ax, manifest, polygons_dir)
     render_labels(ax, gazetteer, manifest, data_dir=data_dir)
     render_campaigns(ax, gazetteer, manifest)
@@ -337,7 +347,7 @@ def main():
 
     # Render borders (must be after all map elements so borders are on top)
     if border_style:
-        borders_dir = os.path.join(backgrounds_dir, '../borders/')
+        borders_dir = os.path.join(data_dir, 'borders')
         render_border(ax, fig, border_style, borders_dir, dimensions_px, dpi=dpi)
 
     plt.title(f"{manifest['metadata']['title']} ({manifest['metadata']['year']})")

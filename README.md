@@ -11,7 +11,7 @@ Create beautiful historical maps from declarative YAML manifests.
 ## Features
 
 - Declarative YAML-based map configuration
-- Support for territories, cities, campaigns (troop movements), and labels
+- Support for territories (geoJSON), cities, campaigns, and labels
 - Tiled PNG border system with customizable styles
 
 ## Installation
@@ -19,7 +19,7 @@ Create beautiful historical maps from declarative YAML manifests.
 ### Prerequisites
 
 - Python 3.9 or higher
-- GEOS library (required by Cartopy)
+- GEOS library
 
 On Ubuntu/Debian:
 ```bash
@@ -41,7 +41,12 @@ pip install -e .
 
 ### Set up backgrounds
 
-Download or create background images and set the environment variable:
+The excellent TIF images from Natural Earth are downloaded using:
+```bash
+history-map --init
+```
+
+Now set the environment variable:
 ```bash
 export CARTOPY_USER_BACKGROUNDS=/path/to/history-cartopy/data/backgrounds
 ```
