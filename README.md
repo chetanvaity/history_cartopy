@@ -46,14 +46,6 @@ The excellent TIF images from Natural Earth are downloaded using:
 history-map --init
 ```
 
-Now set the environment variable:
-```bash
-export CARTOPY_USER_BACKGROUNDS=/path/to/history-cartopy/data/backgrounds
-```
-
-Add this to your shell profile (`~/.bashrc` or `~/.zshrc`) to make it permanent.
-
-
 ## Map Configuration
 
 ### Manifest Structure
@@ -98,13 +90,6 @@ territories:
 - Maps must maintain **3:2 landscape** aspect ratio (width:height = 1.5)
 - Examples: 3000×2000, 3600×2400, 4800×3200
 
-**Recommended Dimensions:**
-- Divisible by 300 (DPI) for clean inch conversion
-- Divisible by 200 (tile size) for complete patterns with no cropping
-- **Ideal:** 3600×2400 (perfectly divisible by both)
-
-**Default:** 3600×2400 pixels (12×8 inches at 300 DPI)
-
 ## Usage
 
 ```bash
@@ -117,35 +102,14 @@ history-map examples/war-of-succession.yaml --output my-map.png
 # Save without displaying (for SSH sessions or scripts)
 history-map examples/war-of-succession.yaml --no-show
 
-# Override resolution (dev, low, med, high)
+# Override background image resolution (dev, low, med, high)
 history-map examples/war-of-succession.yaml --res high
-```
-
-## Directory Structure
-
-```
-history_cartopy/
-├── src/history_cartopy/
-│   ├── render_map.py       # Main entry point
-│   ├── border_styles.py    # Border rendering
-│   ├── core.py             # Core rendering functions
-│   ├── styles.py           # Text and label styles
-│   ├── campaign_styles.py  # Campaign arrow styles
-│   ├── territory_styles.py # Territory rendering styles
-│   └── stylemaps.py        # Style definitions
-├── data/
-│   ├── borders/            # Border tile styles
-│   ├── backgrounds/        # Background images
-│   ├── polygons/           # GeoJSON territory files
-│   └── city-locations.yaml # Gazetteer
-├── examples/               # Example manifests
-└── tests/                  # Test utilities and manifests
 ```
 
 ## Creating Historical Maps
 
 1. Define your map in a YAML manifest (see `examples/reference-manifest.yaml`)
-2. Create or reuse GeoJSON files for territories (Skip territories to begin with)
+2. Create or reuse GeoJSON files for territories (Only if you use territories)
 3. Render the map: `history-map your-manifest.yaml`
 
 ## License
