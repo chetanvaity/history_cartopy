@@ -293,6 +293,9 @@ def main():
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Background Logic (Example using Cartopy stock images)
+    # Set custom backgrounds directory for Cartopy
+    os.environ['CARTOPY_USER_BACKGROUNDS'] = backgrounds_dir
+
     if res == 'high':
         # This is magical - the hi-res maps from Natural Earth are perfect for the purpose
         ax.background_img(name='ne_hyp', resolution='high')
@@ -303,7 +306,7 @@ def main():
     elif res == 'med-yellow':
         ax.background_img(name='ne_hyp', resolution='med-yellow')
     elif res == 'low':
-        ax.stock_img()        
+        ax.stock_img()
     elif res == 'dev':
         ax.coastlines(resolution='110m')
 
