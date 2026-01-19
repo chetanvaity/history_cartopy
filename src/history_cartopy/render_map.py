@@ -21,8 +21,8 @@ BACKGROUND_DOWNLOADS = {
         'description': 'High resolution Natural Earth background (~400MB)',
     },
     'HYP_LR_SR_OB_DR.tif': {
-        'url': 'https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/HYP_LR_SR_OB_DR.zip'
-        'description': 'Medium resolution Natural Earth background (~15MB)',
+        'url': 'https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/HYP_LR_SR_OB_DR.zip',
+        'description': 'Medium resolution Natural Earth background (~200MB)',
     },
     'HYP_HR_SR_OB_DR_YELLOW.tif': {
         'url': 'https://home.chetanv.net/history_cartopy/HYP_HR_SR_OB_DR_YELLOW.zip',
