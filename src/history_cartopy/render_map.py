@@ -21,7 +21,7 @@ BACKGROUND_DOWNLOADS = {
         'description': 'High resolution Natural Earth background (~400MB)',
     },
     'HYP_LR_SR_OB_DR.tif': {
-        'url': 'https://naciscdn.org/naturalearth/50m/raster/HYP_LR_SR_OB_DR.zip',
+        'url': 'https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/HYP_LR_SR_OB_DR.zip'
         'description': 'Medium resolution Natural Earth background (~15MB)',
     },
     'HYP_HR_SR_OB_DR_YELLOW.tif': {
@@ -241,7 +241,7 @@ def main():
     parser.add_description = 'Render a historical map from a YAML manifest.'
 
     # 1. Positional argument for the manifest (optional if --init is used)
-    parser.add_argument('manifest', nargs='?', help='Path to the map manifest YAML')
+    parser.add_argument('manifest', nargs='?', help='Path to the map manifest YAML aaaa')
 
     # 2. Optional overrides
     parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')
