@@ -26,11 +26,6 @@ On Ubuntu/Debian:
 sudo apt install libgeos-dev
 ```
 
-On macOS:
-```bash
-brew install geos
-```
-
 ### Install from source
 
 ```bash
@@ -44,6 +39,12 @@ pip install -e .
 The excellent TIF images from Natural Earth are downloaded using:
 ```bash
 history-map --init
+```
+
+### Trial run
+
+```bash
+history-map examples/war-of-succession-1/manifest.yaml
 ```
 
 ## Map Configuration
@@ -99,18 +100,9 @@ history-map examples/war-of-succession.yaml
 # Specify output filename
 history-map examples/war-of-succession.yaml --output my-map.png
 
-# Save without displaying (for SSH sessions or scripts)
-history-map examples/war-of-succession.yaml --no-show
-
 # Override background image resolution (dev, low, med, high)
 history-map examples/war-of-succession.yaml --res high
 ```
-
-## Creating Historical Maps
-
-1. Define your map in a YAML manifest (see `examples/reference-manifest.yaml`)
-2. Create or reuse GeoJSON files for territories (Only if you use territories)
-3. Render the map: `history-map your-manifest.yaml`
 
 ## License
 
