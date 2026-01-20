@@ -51,7 +51,8 @@ history-map examples/war-of-succession-1/manifest.yaml
 
 ### Manifest Structure
 
-Maps are defined in YAML manifests:
+Maps are defined in YAML manifests.
+(These are easy to create using an LLM to read the history article/chapter/text.)
 
 ```yaml
 metadata:
