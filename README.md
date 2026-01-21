@@ -1,6 +1,7 @@
 # History Cartopy
 
 Create beautiful historical maps from declarative YAML manifests.
+See [motivation](motivation.md).
 
 ## Example Maps
 
