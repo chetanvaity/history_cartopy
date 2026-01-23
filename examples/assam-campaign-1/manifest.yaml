@@ -1,0 +1,90 @@
+# Mir Jumla's Conquest of Koch Bihar and Assam (1661-62)
+# Based on Section 7.3 of "A Short History of Aurangzib"
+
+metadata:
+  title: "Mir Jumla's Advance into Assam"
+  year: 1662
+  extent: [88, 96, 23, 28]
+  background: "natural_earth"
+  resolution: "high-yellow"
+  output: "mir-jumla-assam-1662.png"
+  dimensions: [3600, 2400]
+  iconset: "iconsets/bwicons"
+
+labels:
+  cities:
+    - name: "Dacca"
+      level: 1
+      icon: false
+    - name: "Koch Bihar"
+      level: 1
+      icon: false
+    - name: "Gauhati"
+      level: 2
+      icon: false
+    - name: "Garhgaon"
+      level: 1
+      icon: false
+    - name: "Jogighopa"
+      level: 3
+      icon: false
+    - name: "Simlagarh"
+      level: 3
+      icon: false
+
+  rivers:
+    - name: "Brahmaputra"
+      coords: [92.5, 26.8]
+      rotation: -5
+
+  regions:
+    - name: "ASSAM"
+      coords: [93.5, 27.2]
+      rotation: 0
+    - name: "BENGAL"
+      coords: [89.5, 24.5]
+      rotation: 0
+
+campaigns:
+  # Phase 1: Dacca to Koch Bihar
+  - name: "Phase 1"
+    path: ["Dacca", "Koch Bihar"]
+    style: "invasion"
+    label_above: "Mir Jumla"
+    label_below: "Nov 1661"
+
+  # Phase 2: Koch Bihar to Jogighopa
+  - name: "Phase 2a"
+    path: ["Koch Bihar", "Jogighopa"]
+    style: "invasion"
+    label_below: "Jan 1662"
+
+  # Phase 3: Jogighopa to Gauhati
+  - name: "Phase 2b"
+    path: ["Jogighopa", "Gauhati"]
+    style: "invasion"
+
+  # Phase 4: Gauhati to Simlagarh
+  - name: "Phase 3a"
+    path: ["Gauhati", "Simlagarh"]
+    style: "invasion"
+    label_below: "Feb"
+
+  # Phase 5: Simlagarh to Garhgaon
+  - name: "Phase 3b"
+    path: ["Simlagarh", "Garhgaon"]
+    style: "invasion"
+    label_below: "Mar"
+
+events:
+  - text: "Koch Bihar captured"
+    location: "Koch Bihar"
+    date: "Dec 9"
+    label_angle: 180
+
+  - text: "Ahom capital falls"
+    location: "Garhgaon"
+    date: "Mar 17"
+    icon: "battle"
+    icon_centered: true
+    label_angle: 90

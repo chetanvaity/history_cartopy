@@ -37,6 +37,17 @@ locations:
   Jodhpur: [73.02, 26.23]
 
   # ===========================================================================
+  # INDIA - Bengal & Assam (Mir Jumla's Campaign 1661-63)
+  # ===========================================================================
+  Dacca: [90.41, 23.81]              # Modern Dhaka; Mughal provincial capital
+  Koch Bihar: [89.45, 26.34]         # Capital of Koch kingdom
+  Jogighopa: [90.57, 26.23]          # Fort at mouth of Mona river
+  Gauhati: [91.74, 26.14]            # Modern Guwahati; key Brahmaputra crossing
+  Samdhara: [92.20, 26.20]           # Fort at mouth of Bar Nadi
+  Simlagarh: [93.10, 26.50]          # Fort on south bank of Brahmaputra
+  Garhgaon: [94.64, 26.98]           # Ahom capital (near modern Sivasagar)
+
+  # ===========================================================================
   # ANATOLIA & PERSIA - Alexander's Campaigns
   # ===========================================================================
   Sardis: [28.04, 38.47]           # Lydian capital, western Anatolia
