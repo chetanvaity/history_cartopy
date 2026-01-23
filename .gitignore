@@ -42,3 +42,7 @@ Thumbs.db
 
 # Large data files
 *.tif
+
+# anything in data/rivers/
+!data/river/README.md
+data/rivers/*

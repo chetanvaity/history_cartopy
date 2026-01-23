@@ -10,7 +10,8 @@ from history_cartopy.campaign_styles import *
 from history_cartopy.territory_styles import *
 from history_cartopy.anchor import AnchorCircle
 from history_cartopy.icons import render_icon, DEFAULT_ICONSET
-from history_cartopy.stylemaps import CITY_LEVELS, EVENT_CONFIG
+from history_cartopy.stylemaps import CITY_LEVELS, EVENT_CONFIG, LABEL_STYLES
+from history_cartopy.placement import PlacementManager, PRIORITY
 
 logger = logging.getLogger('history_cartopy.core')
 
@@ -38,18 +39,29 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
     iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
-    # 1. Process Cities (all levels)
+    # Initialize placement manager for overlap detection
+    dpp = get_deg_per_pt(ax)
+    pm = PlacementManager(dpp)
+
+    # =========================================================================
+    # PASS 1: Collect all placement data
+    # =========================================================================
+
+    # Collected data for rendering
+    city_render_data = []
+    river_render_data = []
+    region_render_data = []
+
+    # 1a. Collect Cities
     cities = labels.get('cities', [])
-    logger.debug(f"Processing {len(cities)} cities")
+    logger.debug(f"Collecting {len(cities)} cities")
     for item in cities:
         name = item['name']
         display = item.get('display_as', name)
-        level = item.get('level', 2)  # Default to level 2
+        level = item.get('level', 2)
 
-        # Get level configuration
         level_config = CITY_LEVELS.get(level, CITY_LEVELS[2])
 
-        # Get coordinates
         if name not in gazetteer:
             logger.warning(f"City '{name}' not found in gazetteer")
             continue
@@ -58,25 +70,133 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
         # Create anchor circle for this location
         anchor = AnchorCircle(city_level=level)
 
-        # Determine icon status: None (auto), False (suppressed), or string (override)
         icon_setting = item.get('icon', None)
         has_icon = icon_setting is not False and iconset_path is not None
 
-        # Register attachments with anchor circle
         if has_icon:
-            icon_idx = anchor.add_attachment('icon', preferred_angle=0)  # Above
-        label_idx = anchor.add_attachment('label', preferred_angle=45)   # NE
+            icon_idx = anchor.add_attachment('icon', preferred_angle=0)
+        label_idx = anchor.add_attachment('label', preferred_angle=45)
 
-        # Check for manual offset override
         manual_ox, manual_oy = get_offsets(item)
         use_manual_offset = not (manual_ox == 0.0 and manual_oy == 0.0)
 
-        # Resolve anchor positions
         anchor.resolve()
 
-        # Draw the dot based on style
+        # Calculate offsets
+        if use_manual_offset:
+            label_ox, label_oy = manual_ox, manual_oy
+        else:
+            label_ox, label_oy = anchor.get_offset(label_idx)
+
+        icon_ox, icon_oy = 0, 0
+        icon_name = None
+        if has_icon:
+            icon_name = icon_setting if isinstance(icon_setting, str) else level_config['default_icon']
+            if icon_name:
+                icon_ox, icon_oy = anchor.get_offset(icon_idx)
+
+        # Store for rendering
+        city_render_data.append({
+            'name': name,
+            'display': display,
+            'level': level,
+            'level_config': level_config,
+            'coords': (lon, lat),
+            'label_offset': (label_ox, label_oy),
+            'icon_name': icon_name,
+            'icon_offset': (icon_ox, icon_oy),
+        })
+
+        # Track in placement manager
+        label_style = LABEL_STYLES.get(level_config['label_style'], {})
+        pm.add_label(
+            f"city_label_{name}",
+            (lon, lat),
+            display,
+            fontsize=label_style.get('fontsize', 9),
+            x_offset_pts=label_ox,
+            y_offset_pts=label_oy,
+            priority=PRIORITY.get(f'city_level_{level}', 50),
+            element_type='city_label'
+        )
+        pm.add_dot(
+            f"city_dot_{name}",
+            (lon, lat),
+            size_pts=level_config['dot_outer_size'],
+            priority=PRIORITY.get(f'city_level_{level}', 50) + 10
+        )
+        if icon_name:
+            pm.add_icon(
+                f"city_icon_{name}",
+                (lon, lat),
+                size_pts=25,
+                x_offset_pts=icon_ox,
+                y_offset_pts=icon_oy,
+                priority=PRIORITY.get(f'city_level_{level}', 50),
+                element_type='city_icon'
+            )
+
+    # 1b. Collect Rivers
+    rivers = labels.get('rivers', [])
+    logger.debug(f"Collecting {len(rivers)} rivers")
+    for item in rivers:
+        lon, lat = item['coords']
+        rotation = item.get('rotation')
+        if rotation is None and data_dir:
+            from history_cartopy.river_alignment import get_river_angle
+            rotation = get_river_angle(item['name'], (lon, lat), data_dir)
+
+        river_render_data.append({
+            'name': item['name'],
+            'coords': (lon, lat),
+            'rotation': rotation or 0,
+        })
+
+        river_style = LABEL_STYLES.get('river', {})
+        pm.add_label(
+            f"river_{item['name']}",
+            (lon, lat),
+            item['name'],
+            fontsize=river_style.get('fontsize', 10),
+            priority=PRIORITY.get('river', 40),
+            element_type='river'
+        )
+
+    # 1c. Collect Regions
+    for item in labels.get('regions', []):
+        lon, lat = item['coords']
+        region_render_data.append({
+            'name': item['name'],
+            'coords': (lon, lat),
+            'rotation': item.get('rotation', 0),
+        })
+
+        region_style = LABEL_STYLES.get('region', {})
+        pm.add_label(
+            f"region_{item['name']}",
+            (lon, lat),
+            item['name'],
+            fontsize=region_style.get('fontsize', 20),
+            priority=PRIORITY.get('region', 30),
+            element_type='region'
+        )
+
+    # =========================================================================
+    # PASS 2: Detect overlaps
+    # =========================================================================
+    pm.log_overlaps()
+
+    # =========================================================================
+    # PASS 3: Render everything
+    # =========================================================================
+
+    # 3a. Render Cities
+    for city in city_render_data:
+        lon, lat = city['coords']
+        level_config = city['level_config']
+
+        # Draw dot
         if level_config['dot_style'] == 'ring':
-            # Ring style: black outer, white inner
             ax.plot(lon, lat, marker='o', color='black',
                     markersize=level_config['dot_outer_size'],
                     transform=ccrs.PlateCarree(), zorder=5)
@@ -84,45 +204,32 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
                     markersize=level_config['dot_inner_size'],
                     transform=ccrs.PlateCarree(), zorder=6)
         else:
-            # Solid style: black with white edge
             ax.plot(lon, lat, marker='o', color='black',
                     markersize=level_config['dot_outer_size'],
                     markeredgecolor='white', markeredgewidth=1,
                     transform=ccrs.PlateCarree(), zorder=5)
 
         # Draw icon
-        if has_icon:
-            icon_name = icon_setting if isinstance(icon_setting, str) else level_config['default_icon']
-            if icon_name:
-                icon_ox, icon_oy = anchor.get_offset(icon_idx)
-                render_icon(ax, lon, lat, icon_name, iconset_path,
-                            x_offset=icon_ox, y_offset=icon_oy)
+        if city['icon_name']:
+            render_icon(ax, lon, lat, city['icon_name'], iconset_path,
+                        x_offset=city['icon_offset'][0],
+                        y_offset=city['icon_offset'][1])
 
         # Draw label
-        if use_manual_offset:
-            label_ox, label_oy = manual_ox, manual_oy
-        else:
-            label_ox, label_oy = anchor.get_offset(label_idx)
-        apply_text(ax, lon, lat, display, level_config['label_style'],
-                   x_offset=label_ox, y_offset=label_oy,
+        apply_text(ax, lon, lat, city['display'], level_config['label_style'],
+                   x_offset=city['label_offset'][0],
+                   y_offset=city['label_offset'][1],
                    ha='left', va='top')
 
-    # 2. Process Rivers (Coordinates in the manifest)
-    rivers = labels.get('rivers', [])
-    logger.debug(f"Processing {len(rivers)} rivers")
-    for item in rivers:
-        lon, lat = item['coords']
-        rotation = item.get('rotation')
-        # Auto-calculate rotation from river geometry if not specified
-        if rotation is None and data_dir:
-            from history_cartopy.river_alignment import get_river_angle
-            rotation = get_river_angle(item['name'], (lon, lat), data_dir)
-        apply_text(ax, lon, lat, item['name'], 'river', rotation=rotation or 0)
+    # 3b. Render Rivers
+    for river in river_render_data:
+        apply_text(ax, river['coords'][0], river['coords'][1],
+                   river['name'], 'river', rotation=river['rotation'])
 
-    # 3. Process Regions (Coordinates in the manifest)
-    for item in labels.get('regions', []):
-        lon, lat = item['coords']
-        apply_text(ax, lon, lat, item['name'], 'region', rotation=item.get('rotation', 0))
+    # 3c. Render Regions
+    for region in region_render_data:
+        apply_text(ax, region['coords'][0], region['coords'][1],
+                   region['name'], 'region', rotation=region['rotation'])
 
     # 4. Process standalone icons
     if iconset_path:

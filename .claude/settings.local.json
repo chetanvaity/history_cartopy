@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.maplibrary.org)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(~/hcvenv/bin/python -m pytest:*)"
+    ]
+  }
+}
