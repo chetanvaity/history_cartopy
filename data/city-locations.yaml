@@ -50,6 +50,8 @@ locations:
   Lakhau: [93.80, 26.80]             # Reference point on Brahmaputra
   Tipam: [95.35, 27.15]              # Farthest point of Mir Jumla's advance
   Namrup: [95.55, 27.20]             # In the hills, east of Tipam
+  Calcutta: [88.36, 22.57]           # Modern Kolkata
+  Itanagar: [93.62, 27.08]           # Modern capital of Arunachal Pradesh
 
   # ===========================================================================
   # ANATOLIA & PERSIA - Alexander's Campaigns

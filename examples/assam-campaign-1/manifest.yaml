@@ -4,7 +4,7 @@
 metadata:
   title: "Mir Jumla's Advance into Assam"
   year: 1662
-  extent: [88, 96, 23, 28]
+  extent: [88, 96, 22, 28]
   background: "natural_earth"
   resolution: "high-yellow"
   output: "mir-jumla-assam-1662.png"
@@ -31,6 +31,11 @@ labels:
     - name: "Simlagarh"
       level: 3
       icon: false
+    # Modern reference places
+    - name: "Calcutta"
+      level: 4
+    - name: "Itanagar"
+      level: 4
 
   rivers:
     - name: "Brahmaputra"

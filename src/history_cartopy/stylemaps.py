@@ -3,6 +3,7 @@ LABEL_STYLES = {
     'city1':   {'fontsize': 10, 'weight': 'bold', 'family': 'serif', 'color': 'black', 'halo': True},
     'city2':   {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
     'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#555555', 'halo': True},
+    'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#888888', 'halo': True},
     'river':   {'fontsize': 10, 'style': 'italic', 'family': 'serif', 'color': '#2c5d87', 'halo': True},
     'region':  {'fontsize': 20, 'family': 'serif', 'color': '#5d4037', 'alpha': 0.2, 'halo': False},
     'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
@@ -42,6 +43,14 @@ CITY_LEVELS = {
         'label_style': 'city3',
         'anchor_radius': 5,
         'default_icon': 'city',
+    },
+    4: {
+        'dot_outer_size': 2,
+        'dot_inner_size': None,
+        'dot_style': 'solid',
+        'label_style': 'modern_place',
+        'anchor_radius': 4,
+        'default_icon': False,
     },
 }
 
