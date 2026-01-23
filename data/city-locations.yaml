@@ -46,6 +46,10 @@ locations:
   Samdhara: [92.20, 26.20]           # Fort at mouth of Bar Nadi
   Simlagarh: [93.10, 26.50]          # Fort on south bank of Brahmaputra
   Garhgaon: [94.64, 26.98]           # Ahom capital (near modern Sivasagar)
+  Mathurapur: [94.90, 27.10]         # Mughal outpost, 17 miles above Garhgaon
+  Lakhau: [93.80, 26.80]             # Reference point on Brahmaputra
+  Tipam: [95.35, 27.15]              # Farthest point of Mir Jumla's advance
+  Namrup: [95.55, 27.20]             # In the hills, east of Tipam
 
   # ===========================================================================
   # ANATOLIA & PERSIA - Alexander's Campaigns

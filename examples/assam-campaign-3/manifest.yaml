@@ -1,0 +1,77 @@
+# Mir Jumla's Final Offensive and Treaty (Oct 1662 - Mar 1663)
+# Based on Sections 7.5-7.6 of "A Short History of Aurangzib"
+
+metadata:
+  title: "Final Offensive and Treaty"
+  year: 1663
+  extent: [93, 96.5, 26, 28]
+  background: "natural_earth"
+  resolution: "high-yellow"
+  output: "mir-jumla-final-1663.png"
+  dimensions: [3600, 2400]
+  iconset: "iconsets/bwicons"
+
+labels:
+  cities:
+    - name: "Garhgaon"
+      level: 1
+      icon: false
+    - name: "Tipam"
+      level: 2
+      icon: false
+    - name: "Namrup"
+      level: 2
+      icon: false
+    - name: "Lakhau"
+      level: 3
+      icon: false
+
+  rivers:
+    - name: "Dihing"
+      coords: [95.0, 27.35]
+      rotation: -20
+    - name: "Brahmaputra"
+      coords: [93.8, 27.2]
+      rotation: -10
+
+  regions:
+    - name: "NAMRUP HILLS"
+      coords: [95.8, 27.4]
+      rotation: 0
+
+campaigns:
+  # Final offensive: Garhgaon to Tipam
+  - name: "Offensive 1"
+    path: ["Garhgaon", "Tipam"]
+    style: "invasion"
+    label_above: "Mir Jumla"
+    label_below: "Nov 18"
+
+  # Farthest advance: Tipam to Namrup
+  - name: "Offensive 2"
+    path: ["Tipam", "Namrup"]
+    style: "invasion"
+    label_below: "Nov 20"
+
+  # Return march begins
+  - name: "Return"
+    path: ["Namrup", "Garhgaon"]
+    style: "retreat"
+    label_above: "Return march"
+    label_below: "Jan 1663"
+
+events:
+  - text: "Farthest point"
+    location: "Namrup"
+    date: "Nov 20"
+    label_angle: 90
+
+  - text: "Treaty signed"
+    location: "Garhgaon"
+    date: "Dec"
+    label_angle: 270
+
+  - text: "Mir Jumla falls ill"
+    location: "Tipam"
+    date: "Dec 10"
+    label_angle: 180

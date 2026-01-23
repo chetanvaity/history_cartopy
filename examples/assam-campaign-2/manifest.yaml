@@ -1,0 +1,66 @@
+# The Rainy Season Siege (May-October 1662)
+# Based on Section 7.4 of "A Short History of Aurangzib"
+
+metadata:
+  title: "Siege of Garhgaon"
+  year: 1662
+  extent: [93, 96, 26, 28]
+  background: "natural_earth"
+  resolution: "high-yellow"
+  output: "garhgaon-siege-1662.png"
+  dimensions: [3600, 2400]
+  iconset: "iconsets/bwicons"
+
+labels:
+  cities:
+    - name: "Garhgaon"
+      level: 1
+      icon: false
+    - name: "Mathurapur"
+      level: 2
+      icon: false
+    - name: "Lakhau"
+      level: 3
+      icon: false
+    - name: "Simlagarh"
+      level: 3
+      icon: false
+
+  rivers:
+    - name: "Brahmaputra"
+      coords: [94.0, 27.3]
+      rotation: -10
+    - name: "Dihing"
+      coords: [95.2, 27.4]
+      rotation: -30
+
+  regions:
+    - name: "AHOM TERRITORY"
+      coords: [94.8, 27.5]
+      rotation: 0
+
+campaigns:
+  # Retreat from Mathurapur to Garhgaon
+  - name: "Retreat"
+    path: ["Mathurapur", "Garhgaon"]
+    style: "retreat"
+    label_above: "Retreat"
+    label_below: "Aug 17"
+
+events:
+  - text: "Mughal HQ besieged"
+    location: "Garhgaon"
+    date: "May-Oct"
+    label_angle: 180
+
+  - text: "Ahom assault repelled"
+    location: "Garhgaon"
+    date: "Jul 12"
+    icon: "battle"
+    icon_centered: true
+    label_angle: 90
+
+  - text: "Epidemic"
+    location: "Mathurapur"
+    date: "Aug"
+    label_angle: 0
