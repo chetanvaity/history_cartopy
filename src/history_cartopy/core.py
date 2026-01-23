@@ -32,16 +32,15 @@ def get_offsets(item):
     return offset[0], offset[1]
 
 # All labels
-def render_labels(ax, gazetteer, manifest, data_dir=None):
+def render_labels(ax, gazetteer, manifest, placement_manager, data_dir=None):
     labels = manifest.get('labels', {})
 
     # Resolve iconset path
     iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
-    # Initialize placement manager for overlap detection
-    dpp = get_deg_per_pt(ax)
-    pm = PlacementManager(dpp)
+    # Use provided placement manager
+    pm = placement_manager
 
     # =========================================================================
     # PASS 1: Collect all placement data
@@ -182,12 +181,7 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
         )
 
     # =========================================================================
-    # PASS 2: Detect overlaps
-    # =========================================================================
-    pm.log_overlaps()
-
-    # =========================================================================
-    # PASS 3: Render everything
+    # PASS 2: Render everything (overlap detection happens after all rendering)
     # =========================================================================
 
     # 3a. Render Cities
@@ -281,24 +275,28 @@ def _offset_point_toward(p_from, p_toward, offset_deg):
     return (p1 + unit * offset_deg).tolist()
 
 
-def render_campaigns(ax, gazetteer, manifest):
+def render_campaigns(ax, gazetteer, manifest, placement_manager):
     from history_cartopy.styles import get_deg_per_pt
+    from history_cartopy.campaign_styles import (
+        _get_multistop_geometry, _get_label_candidates, apply_campaign
+    )
+    from history_cartopy.stylemaps import LABEL_STYLES
 
     # Build city level lookup for anchor radius calculation
     city_levels = _get_city_level_lookup(manifest)
     dpp = get_deg_per_pt(ax)
+    pm = placement_manager
 
     campaigns = manifest.get('campaigns', [])
     logger.debug(f"Processing {len(campaigns)} campaigns")
-    for item in campaigns:
-        # 1. Coordinate Lookup: Path can be ['CityName', 'CityName'] or [[lon, lat], [lon, lat]]
+    for idx, item in enumerate(campaigns):
+        # 1. Coordinate Lookup
         raw_path = item.get('path', [])
         processed_coords = []
-        path_city_names = []  # Track which entries are city names
+        path_city_names = []
 
         for p in raw_path:
             if isinstance(p, str):
-                # Look up city name in the master gazetteer
                 if p in gazetteer:
                     processed_coords.append(gazetteer[p])
                     path_city_names.append(p)
@@ -306,49 +304,126 @@ def render_campaigns(ax, gazetteer, manifest):
                     logger.warning(f"Campaign location '{p}' not found in gazetteer")
                     continue
             else:
-                # It's already a [lon, lat] list/tuple
-                processed_coords.append(p)
+                processed_coords.append(list(p))
                 path_city_names.append(None)
 
-        # We need at least a start and end to draw an arrow
         if len(processed_coords) < 2:
             logger.warning("At least 2 points required for a campaign")
             continue
 
         # 2. Adjust start/end points to anchor circle edges
-        p1, p2 = processed_coords[0], processed_coords[-1]
-        name1, name2 = path_city_names[0], path_city_names[-1] if len(path_city_names) > 1 else None
+        name1 = path_city_names[0]
+        name2 = path_city_names[-1] if len(path_city_names) > 1 else None
 
-        # Offset start point (toward destination)
         if name1 and name1 in city_levels:
             level1 = city_levels[name1]
             radius1 = CITY_LEVELS.get(level1, CITY_LEVELS[2])['anchor_radius']
-            offset1_deg = radius1 * dpp
-            p1 = _offset_point_toward(p1, p2, offset1_deg)
+            next_pt = processed_coords[1] if len(processed_coords) > 1 else processed_coords[0]
+            processed_coords[0] = _offset_point_toward(
+                processed_coords[0], next_pt, radius1 * dpp
+            )
 
-        # Offset end point (toward source, i.e., away from destination)
         if name2 and name2 in city_levels:
             level2 = city_levels[name2]
             radius2 = CITY_LEVELS.get(level2, CITY_LEVELS[2])['anchor_radius']
-            offset2_deg = radius2 * dpp
-            p2 = _offset_point_toward(p2, p1, offset2_deg)
+            prev_pt = processed_coords[-2] if len(processed_coords) > 1 else processed_coords[-1]
+            processed_coords[-1] = _offset_point_toward(
+                processed_coords[-1], prev_pt, radius2 * dpp
+            )
 
-        adjusted_coords = [p1, p2]
+        # 3. Extract parameters
+        label_above = item.get('label_above', "")
+        label_below = item.get('label_below', "")
+        style_key = item.get('style', 'invasion')
+        path_type = item.get('path_type', 'spline')
+        arrows = item.get('arrows', 'final')
 
-        # 3. Extract specific parameters for this campaign
-        label_top = item.get('label_above', "")
-        label_bot = item.get('label_below', "")
-        style = item.get('style', 'invasion')
-        curvature = item.get('rad', 0.3)  # Default curvature
+        # 4. Compute geometry
+        geometry = _get_multistop_geometry(processed_coords, path_type=path_type)
+        if geometry is None:
+            logger.warning(f"Failed to compute geometry for campaign {idx}")
+            continue
 
-        # 4. Call the style function with adjusted coordinates
+        # 5. Find best segment for labels (longest that doesn't overlap)
+        label_segment = geometry['segments'][0]  # Default to longest (first after sort)
+
+        if label_above or label_below:
+            candidates = _get_label_candidates(geometry)
+            fontsize_above = LABEL_STYLES.get('campaign_above', {}).get('fontsize', 9)
+            fontsize_below = LABEL_STYLES.get('campaign_below', {}).get('fontsize', 8)
+            campaign_group = f"campaign_{idx}"
+
+            for candidate in candidates:
+                # Check if this segment's labels would overlap
+                overlaps = False
+
+                if label_above:
+                    test_elem = pm.add_campaign_label(
+                        id=f"_test_above_{idx}",
+                        coords=tuple(candidate['midpoint']),
+                        text=label_above,
+                        fontsize=fontsize_above,
+                        rotation=candidate['angle'],
+                        normal=tuple(candidate['normal']),
+                        group=campaign_group,
+                    )
+                    if pm.would_overlap(test_elem):
+                        overlaps = True
+                    pm.remove(f"_test_above_{idx}")
+
+                if label_below and not overlaps:
+                    test_elem = pm.add_campaign_label(
+                        id=f"_test_below_{idx}",
+                        coords=tuple(candidate['midpoint']),
+                        text=label_below,
+                        fontsize=fontsize_below,
+                        rotation=candidate['angle'],
+                        normal=(-candidate['normal'][0], -candidate['normal'][1]),
+                        group=campaign_group,
+                    )
+                    if pm.would_overlap(test_elem):
+                        overlaps = True
+                    pm.remove(f"_test_below_{idx}")
+
+                if not overlaps:
+                    label_segment = candidate
+                    break
+            else:
+                # All segments overlap - use longest anyway
+                label_segment = candidates[0]
+                logger.debug(f"Campaign {idx}: all label positions overlap, using longest segment")
+
+            # Add final label placements
+            if label_above:
+                pm.add_campaign_label(
+                    id=f"campaign_{idx}_above",
+                    coords=tuple(label_segment['midpoint']),
+                    text=label_above,
+                    fontsize=fontsize_above,
+                    rotation=label_segment['angle'],
+                    normal=tuple(label_segment['normal']),
+                    group=campaign_group,
+                )
+            if label_below:
+                pm.add_campaign_label(
+                    id=f"campaign_{idx}_below",
+                    coords=tuple(label_segment['midpoint']),
+                    text=label_below,
+                    fontsize=fontsize_below,
+                    rotation=label_segment['angle'],
+                    normal=(-label_segment['normal'][0], -label_segment['normal'][1]),
+                    group=campaign_group,
+                )
+
+        # 6. Render campaign
         apply_campaign(
             ax,
-            points=adjusted_coords,
-            label_above=label_top,
-            label_below=label_bot,
-            style_key=style,
-            rad=curvature
+            geometry=geometry,
+            label_segment=label_segment,
+            label_above=label_above,
+            label_below=label_below,
+            style_key=style_key,
+            arrows=arrows,
         )
 
 

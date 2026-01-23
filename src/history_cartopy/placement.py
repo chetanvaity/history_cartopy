@@ -6,6 +6,7 @@ using bounding box intersection.
 """
 
 import logging
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -20,6 +21,7 @@ PRIORITY = {
     'city_level_3': 70,
     'event_label': 60,
     'city_level_4': 50,   # Modern place
+    'campaign_label': 45,  # Campaign labels
     'river': 40,
     'region': 30,
 }
@@ -212,6 +214,113 @@ class PlacementManager:
         self.elements[id] = element
         return element
 
+    def add_campaign_label(
+        self,
+        id: str,
+        coords: tuple,
+        text: str,
+        fontsize: float,
+        rotation: float,
+        normal: tuple,
+        gap_pts: float = 8,
+        priority: int = None,
+        group: str = None,
+    ) -> PlacementElement:
+        """
+        Add a campaign label element (rotated text along path).
+
+        Args:
+            id: Unique identifier
+            coords: (lon, lat) anchor point (segment midpoint)
+            text: Label text
+            fontsize: Font size in points
+            rotation: Rotation angle in degrees
+            normal: (nx, ny) unit normal for offset direction
+            gap_pts: Offset from anchor in points
+            priority: Higher = more important
+            group: Elements in same group don't count as overlapping
+        """
+        if priority is None:
+            priority = PRIORITY['campaign_label']
+
+        # Text dimensions in points
+        char_width = fontsize * 0.6
+        text_width_pts = len(text) * char_width
+        text_height_pts = fontsize * 1.2
+
+        # Convert to degrees
+        text_width_deg = text_width_pts * self.dpp
+        text_height_deg = text_height_pts * self.dpp
+        gap_deg = gap_pts * self.dpp
+
+        # Offset along normal
+        x_offset_deg = normal[0] * gap_deg
+        y_offset_deg = normal[1] * gap_deg
+
+        # Center of rotated text
+        center_x = coords[0] + x_offset_deg
+        center_y = coords[1] + y_offset_deg
+
+        # AABB for rotated rectangle
+        rad = math.radians(rotation)
+        cos_r, sin_r = abs(math.cos(rad)), abs(math.sin(rad))
+        aabb_width = text_width_deg * cos_r + text_height_deg * sin_r
+        aabb_height = text_width_deg * sin_r + text_height_deg * cos_r
+
+        bbox = (
+            center_x - aabb_width / 2,
+            center_y - aabb_height / 2,
+            center_x + aabb_width / 2,
+            center_y + aabb_height / 2,
+        )
+
+        element = PlacementElement(
+            id=id,
+            type='campaign_label',
+            coords=coords,
+            offset=(x_offset_deg, y_offset_deg),
+            bbox=bbox,
+            priority=priority,
+            text=text,
+            group=group,
+        )
+
+        self.elements[id] = element
+        logger.debug(f"Added campaign label '{id}': {text}")
+        return element
+
+    def would_overlap(self, element: PlacementElement) -> list[PlacementElement]:
+        """
+        Check if an element would overlap with existing elements.
+        Does NOT add the element to the manager.
+
+        Args:
+            element: PlacementElement to check
+
+        Returns:
+            List of existing elements that would overlap
+        """
+        overlapping = []
+        for existing in self.elements.values():
+            # Skip same group
+            if element.group and existing.group and element.group == existing.group:
+                continue
+            if self._bbox_intersects(element.bbox, existing.bbox):
+                overlapping.append(existing)
+        return overlapping
+
+    def remove(self, id: str) -> bool:
+        """
+        Remove an element by ID.
+
+        Returns:
+            True if removed, False if not found
+        """
+        if id in self.elements:
+            del self.elements[id]
+            return True
+        return False
+
     def _bbox_intersects(self, b1: tuple, b2: tuple) -> bool:
         """
         Check if two bounding boxes intersect.
@@ -238,6 +347,9 @@ class PlacementManager:
 
         for i, e1 in enumerate(elements):
             for e2 in elements[i + 1:]:
+                # Skip same group (e.g., above/below labels on same campaign)
+                if e1.group and e2.group and e1.group == e2.group:
+                    continue
                 if self._bbox_intersects(e1.bbox, e2.bbox):
                     overlaps.append((e1, e2))
 

@@ -13,6 +13,8 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from PIL import Image
 from history_cartopy.core import load_data, render_labels, render_campaigns, render_territories, render_events
 from history_cartopy.border_styles import render_border
+from history_cartopy.placement import PlacementManager
+from history_cartopy.styles import get_deg_per_pt
 
 # Configure logging
 logging.basicConfig(
@@ -385,12 +387,20 @@ def main():
     # Run Engine
     logger.info("Rendering territories")
     render_territories(ax, manifest, polygons_dir)
+
+    # Create placement manager for overlap detection
+    dpp = get_deg_per_pt(ax)
+    pm = PlacementManager(dpp)
+
     logger.info("Rendering labels")
-    render_labels(ax, gazetteer, manifest, data_dir=data_dir)
+    render_labels(ax, gazetteer, manifest, pm, data_dir=data_dir)
     logger.info("Rendering campaigns")
-    render_campaigns(ax, gazetteer, manifest)
+    render_campaigns(ax, gazetteer, manifest, pm)
     logger.info("Rendering events")
     render_events(ax, gazetteer, manifest, data_dir=data_dir)
+
+    # Log any placement overlaps
+    pm.log_overlaps()
 
     # Scale bar
     scale_bar = manifest['metadata'].get('scale_bar', False)
