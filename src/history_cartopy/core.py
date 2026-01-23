@@ -1,3 +1,4 @@
+import logging
 import yaml
 import cartopy.crs as ccrs
 import json
@@ -10,6 +11,8 @@ from history_cartopy.territory_styles import *
 from history_cartopy.anchor import AnchorCircle
 from history_cartopy.icons import render_icon, DEFAULT_ICONSET
 from history_cartopy.stylemaps import CITY_LEVELS, EVENT_CONFIG
+
+logger = logging.getLogger('history_cartopy.core')
 
 
 def load_data(gazetteer_path, manifest_path):
@@ -36,7 +39,9 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
     # 1. Process Cities (all levels)
-    for item in labels.get('cities', []):
+    cities = labels.get('cities', [])
+    logger.debug(f"Processing {len(cities)} cities")
+    for item in cities:
         name = item['name']
         display = item.get('display_as', name)
         level = item.get('level', 2)  # Default to level 2
@@ -46,7 +51,7 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
 
         # Get coordinates
         if name not in gazetteer:
-            print(f"Warning: City '{name}' not found in gazetteer")
+            logger.warning(f"City '{name}' not found in gazetteer")
             continue
         lon, lat = gazetteer[name]
 
@@ -103,9 +108,16 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
                    ha='left', va='top')
 
     # 2. Process Rivers (Coordinates in the manifest)
-    for item in labels.get('rivers', []):
+    rivers = labels.get('rivers', [])
+    logger.debug(f"Processing {len(rivers)} rivers")
+    for item in rivers:
         lon, lat = item['coords']
-        apply_text(ax, lon, lat, item['name'], 'river', rotation=item.get('rotation', 0))
+        rotation = item.get('rotation')
+        # Auto-calculate rotation from river geometry if not specified
+        if rotation is None and data_dir:
+            from history_cartopy.river_alignment import get_river_angle
+            rotation = get_river_angle(item['name'], (lon, lat), data_dir)
+        apply_text(ax, lon, lat, item['name'], 'river', rotation=rotation or 0)
 
     # 3. Process Regions (Coordinates in the manifest)
     for item in labels.get('regions', []):
@@ -125,7 +137,7 @@ def render_labels(ax, gazetteer, manifest, data_dir=None):
             elif 'location' in item:
                 loc_name = item['location']
                 if loc_name not in gazetteer:
-                    print(f"Warning: Icon location '{loc_name}' not in gazetteer")
+                    logger.warning(f"Icon location '{loc_name}' not in gazetteer")
                     continue
                 lon, lat = gazetteer[loc_name]
             else:
@@ -169,7 +181,9 @@ def render_campaigns(ax, gazetteer, manifest):
     city_levels = _get_city_level_lookup(manifest)
     dpp = get_deg_per_pt(ax)
 
-    for item in manifest.get('campaigns', []):
+    campaigns = manifest.get('campaigns', [])
+    logger.debug(f"Processing {len(campaigns)} campaigns")
+    for item in campaigns:
         # 1. Coordinate Lookup: Path can be ['CityName', 'CityName'] or [[lon, lat], [lon, lat]]
         raw_path = item.get('path', [])
         processed_coords = []
@@ -182,7 +196,7 @@ def render_campaigns(ax, gazetteer, manifest):
                     processed_coords.append(gazetteer[p])
                     path_city_names.append(p)
                 else:
-                    print(f"Warning: Campaign location '{p}' not found in gazetteer.")
+                    logger.warning(f"Campaign location '{p}' not found in gazetteer")
                     continue
             else:
                 # It's already a [lon, lat] list/tuple
@@ -191,7 +205,7 @@ def render_campaigns(ax, gazetteer, manifest):
 
         # We need at least a start and end to draw an arrow
         if len(processed_coords) < 2:
-            print(f"Warning: At least 2 points required for a campaign.")
+            logger.warning("At least 2 points required for a campaign")
             continue
 
         # 2. Adjust start/end points to anchor circle edges
@@ -234,16 +248,19 @@ def render_campaigns(ax, gazetteer, manifest):
 # Territories
 def render_territories(ax, manifest, polygons_dir):
     if 'territories' not in manifest:
+        logger.debug("No territories to render")
         return
 
-    for entry in manifest['territories']:
+    territories = manifest['territories']
+    logger.debug(f"Processing {len(territories)} territories")
+    for entry in territories:
         file_name = entry.get('file')
         style_key = entry.get('style', 'kingdom1')
         render_type = entry.get('type', 'fuzzy_fill') # Default type
 
         full_path = os.path.join(polygons_dir, file_name)
         if not os.path.exists(full_path):
-            print(f"Skipping: {file_name} not found at {full_path}")
+            logger.warning(f"Skipping: {file_name} not found at {full_path}")
             continue
 
         try:
@@ -268,12 +285,12 @@ def render_territories(ax, manifest, polygons_dir):
                 elif render_type == 'edge-tint-fill':
                     apply_edge_tint_fill_territory(ax, smooth_geom, style_key)
                 else:
-                    print(f"Unknown territory type {render_type}")
+                    logger.warning(f"Unknown territory type: {render_type}")
 
         except (KeyError, TypeError) as e:
-            print(f"Error: {file_name} is not a valid GeoJSON FeatureCollection. {e}")
+            logger.error(f"{file_name} is not a valid GeoJSON FeatureCollection: {e}")
         except Exception as e:
-            print(f"Unexpected error loading {file_name}: {e}")
+            logger.error(f"Unexpected error loading {file_name}: {e}")
 
 
 def render_events(ax, gazetteer, manifest, data_dir=None):
@@ -282,7 +299,9 @@ def render_events(ax, gazetteer, manifest, data_dir=None):
     iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
-    for item in manifest.get('events', []):
+    events = manifest.get('events', [])
+    logger.debug(f"Processing {len(events)} events")
+    for item in events:
         text = item.get('text', '')
         date = item.get('date', '')
         icon_name = item.get('icon')
@@ -293,11 +312,11 @@ def render_events(ax, gazetteer, manifest, data_dir=None):
         elif 'location' in item:
             loc_name = item['location']
             if loc_name not in gazetteer:
-                print(f"Warning: Event location '{loc_name}' not found in gazetteer")
+                logger.warning(f"Event location '{loc_name}' not found in gazetteer")
                 continue
             lon, lat = gazetteer[loc_name]
         else:
-            print(f"Warning: Event '{text}' has no coords or location")
+            logger.warning(f"Event '{text}' has no coords or location")
             continue
 
         # Optional rotation

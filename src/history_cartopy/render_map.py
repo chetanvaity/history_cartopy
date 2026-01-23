@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import logging
 import os
 import sys
 import urllib.request
@@ -12,6 +13,13 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from PIL import Image
 from history_cartopy.core import load_data, render_labels, render_campaigns, render_territories, render_events
 from history_cartopy.border_styles import render_border
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger('history_cartopy')
 
 
 # Natural Earth background image download URLs
@@ -31,6 +39,15 @@ BACKGROUND_DOWNLOADS = {
     'HYP_LR_SR_OB_DR_YELLOW.tif': {
         'url': 'https://home.chetanv.net/history_cartopy/HYP_LR_SR_OB_DR_YELLOW.zip',
         'description': 'Low resolution yellow variant background',
+    },
+}
+
+# Natural Earth vector data downloads
+VECTOR_DOWNLOADS = {
+    'ne_10m_rivers_lake_centerlines': {
+        'url': 'https://naciscdn.org/naturalearth/10m/physical/ne_10m_rivers_lake_centerlines.zip',
+        'description': 'Rivers and lake centerlines (~2MB)',
+        'subdir': 'rivers',
     },
 }
 
@@ -105,6 +122,32 @@ def download_backgrounds():
 
     print()
     print("Background download complete.")
+
+
+def download_vectors():
+    """Download Natural Earth vector data (rivers, etc.) to the data directory."""
+    data_dir = _get_data_dir()
+
+    for name, info in VECTOR_DOWNLOADS.items():
+        target_dir = os.path.join(data_dir, info['subdir'])
+        os.makedirs(target_dir, exist_ok=True)
+
+        shp_path = os.path.join(target_dir, f"{name}.shp")
+        if os.path.exists(shp_path):
+            print(f"[SKIP] {name} already exists")
+            continue
+
+        print(f"[DOWNLOAD] {info['description']}")
+        zip_path = os.path.join(target_dir, os.path.basename(info['url']))
+
+        try:
+            urllib.request.urlretrieve(info['url'], zip_path)
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                zf.extractall(target_dir)
+            os.remove(zip_path)
+            print(f"[OK] {name}")
+        except Exception as e:
+            print(f"[ERROR] {name}: {e}")
 
 
 def _render_scale_bar(ax, extent, position='bottom-left'):
@@ -224,16 +267,15 @@ def _validate_dimensions(dimensions_px, dpi=300):
 
     # Check divisibility by DPI (for clean inch conversion)
     if width_px % dpi != 0 or height_px % dpi != 0:
-        print(f"Warning: Dimensions {width_px}×{height_px} not evenly divisible by DPI ({dpi}).")
-        print(f"  This results in fractional inches: {width_px/dpi:.2f}\" × {height_px/dpi:.2f}\"")
-        print(f"  Recommended dimensions divisible by {dpi}: 3600×2400, 4800×3200, 6000×4000")
+        logger.warning(f"Dimensions {width_px}x{height_px} not evenly divisible by DPI ({dpi})")
+        logger.warning(f"  Fractional inches: {width_px/dpi:.2f}\" x {height_px/dpi:.2f}\"")
+        logger.warning(f"  Recommended: 3600x2400, 4800x3200, 6000x4000")
 
     # Check divisibility by tile size (200px) for clean tiling
     tile_size = 200
     if width_px % tile_size != 0 or height_px % tile_size != 0:
-        print(f"Warning: Dimensions {width_px}×{height_px} not evenly divisible by tile size ({tile_size}px).")
-        print(f"  This may result in cropped border patterns.")
-        print(f"  Recommended dimensions divisible by {tile_size}: 3000×2000, 3600×2400, 4000×2667")
+        logger.warning(f"Dimensions {width_px}x{height_px} not evenly divisible by tile size ({tile_size}px)")
+        logger.warning("  This may result in cropped border patterns")
 
 
 def main():
@@ -251,15 +293,18 @@ def main():
 
     args = parser.parse_args()
 
-    # Handle --init: download backgrounds and exit
+    # Handle --init: download backgrounds and vector data, then exit
     if args.init:
         download_backgrounds()
+        download_vectors()
         return
 
     # Require manifest for normal operation
     if not args.manifest:
         parser.error('manifest is required (unless using --init)')
         return
+
+    logger.info(f"Loading manifest: {args.manifest}")
 
     # Remove limit on large file sizes for high-res images
     Image.MAX_IMAGE_PIXELS = None
@@ -269,6 +314,7 @@ def main():
     polygons_dir = os.path.join(data_dir, 'polygons')
     gazetteer_path = os.path.join(data_dir, 'city-locations.yaml')
     gazetteer, manifest = load_data(gazetteer_path, args.manifest)
+    logger.debug(f"Loaded {len(gazetteer)} locations from gazetteer")
 
     # Resolve Settings (CLI overrides Manifest)
     res = args.res or manifest['metadata'].get('resolution', 'low')
@@ -337,9 +383,13 @@ def main():
         gl.ylabel_style = {'size': 8, 'color': 'gray'}
 
     # Run Engine
+    logger.info("Rendering territories")
     render_territories(ax, manifest, polygons_dir)
+    logger.info("Rendering labels")
     render_labels(ax, gazetteer, manifest, data_dir=data_dir)
+    logger.info("Rendering campaigns")
     render_campaigns(ax, gazetteer, manifest)
+    logger.info("Rendering events")
     render_events(ax, gazetteer, manifest, data_dir=data_dir)
 
     # Scale bar
@@ -357,14 +407,15 @@ def main():
 
     # Save and/or Show
     # Don't use bbox_inches='tight' - we want exact dimensions as specified
+    logger.info(f"Saving map to {out_file}")
     plt.savefig(out_file, dpi=dpi)
-    print(f"Map saved to {out_file}")
+    logger.info(f"Map saved to {out_file}")
 
     if not args.no_show:
         try:
             plt.show()
         except Exception:
-            print(f"Could not open display. Map saved to file.")
+            logger.warning("Could not open display. Map saved to file.")
 
 if __name__ == "__main__":
     main()
