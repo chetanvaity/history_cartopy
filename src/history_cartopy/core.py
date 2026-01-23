@@ -108,6 +108,7 @@ def render_labels(ax, gazetteer, manifest, placement_manager, data_dir=None):
 
         # Track in placement manager
         label_style = LABEL_STYLES.get(level_config['label_style'], {})
+        city_group = f"city_{name}"
         pm.add_label(
             f"city_label_{name}",
             (lon, lat),
@@ -116,13 +117,15 @@ def render_labels(ax, gazetteer, manifest, placement_manager, data_dir=None):
             x_offset_pts=label_ox,
             y_offset_pts=label_oy,
             priority=PRIORITY.get(f'city_level_{level}', 50),
-            element_type='city_label'
+            element_type='city_label',
+            group=city_group,
         )
         pm.add_dot(
             f"city_dot_{name}",
             (lon, lat),
             size_pts=level_config['dot_outer_size'],
-            priority=PRIORITY.get(f'city_level_{level}', 50) + 10
+            priority=PRIORITY.get(f'city_level_{level}', 50) + 10,
+            group=city_group,
         )
         if icon_name:
             pm.add_icon(
@@ -132,7 +135,8 @@ def render_labels(ax, gazetteer, manifest, placement_manager, data_dir=None):
                 x_offset_pts=icon_ox,
                 y_offset_pts=icon_oy,
                 priority=PRIORITY.get(f'city_level_{level}', 50),
-                element_type='city_icon'
+                element_type='city_icon',
+                group=city_group,
             )
 
     # 1b. Collect Rivers

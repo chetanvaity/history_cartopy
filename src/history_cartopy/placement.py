@@ -75,7 +75,8 @@ class PlacementManager:
         x_offset_pts: float = 0,
         y_offset_pts: float = 0,
         priority: int = 50,
-        element_type: str = 'city_label'
+        element_type: str = 'city_label',
+        group: str = None,
     ) -> PlacementElement:
         """
         Add a label element.
@@ -89,6 +90,7 @@ class PlacementManager:
             y_offset_pts: Y offset from anchor in points
             priority: Higher = more important
             element_type: Type of element for categorization
+            group: Group ID - elements in same group don't count as overlapping
         """
         # Approximate text dimensions in points
         char_width = fontsize * 0.6  # Average character width
@@ -120,6 +122,7 @@ class PlacementManager:
             bbox=bbox,
             priority=priority,
             text=text,
+            group=group,
         )
 
         self.elements[id] = element
@@ -134,7 +137,8 @@ class PlacementManager:
         x_offset_pts: float = 0,
         y_offset_pts: float = 0,
         priority: int = 50,
-        element_type: str = 'city_icon'
+        element_type: str = 'city_icon',
+        group: str = None,
     ) -> PlacementElement:
         """
         Add an icon element.
@@ -147,6 +151,7 @@ class PlacementManager:
             y_offset_pts: Y offset from anchor in points
             priority: Higher = more important
             element_type: Type of element for categorization
+            group: Group ID - elements in same group don't count as overlapping
         """
         # Convert to degrees
         x_offset_deg = x_offset_pts * self.dpp
@@ -171,6 +176,7 @@ class PlacementManager:
             offset=(x_offset_deg, y_offset_deg),
             bbox=bbox,
             priority=priority,
+            group=group,
         )
 
         self.elements[id] = element
@@ -183,6 +189,7 @@ class PlacementManager:
         coords: tuple,
         size_pts: float = 6,
         priority: int = 100,
+        group: str = None,
     ) -> PlacementElement:
         """
         Add a city dot element.
@@ -192,6 +199,7 @@ class PlacementManager:
             coords: (lon, lat) position
             size_pts: Dot size in points
             priority: Higher = more important
+            group: Group ID - elements in same group don't count as overlapping
         """
         dot_size_deg = size_pts * self.dpp
 
@@ -209,6 +217,7 @@ class PlacementManager:
             offset=(0, 0),
             bbox=bbox,
             priority=priority,
+            group=group,
         )
 
         self.elements[id] = element
