@@ -53,7 +53,7 @@ labels:
 campaigns:
   # Phase 1: Dacca to Koch Bihar
   - name: "Phase 1"
-    path: ["Dacca", "Koch Bihar"]
+    path: ["Dacca", [89.5, 25.5], "Koch Bihar"]
     style: "invasion"
     label_above: "Mir Jumla"
     label_below: "Nov 1661"
