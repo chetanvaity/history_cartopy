@@ -397,7 +397,7 @@ def main():
     logger.info("Rendering campaigns")
     render_campaigns(ax, gazetteer, manifest, pm)
     logger.info("Rendering events")
-    render_events(ax, gazetteer, manifest, data_dir=data_dir)
+    render_events(ax, gazetteer, manifest, pm, data_dir=data_dir)
 
     # Log any placement overlaps
     pm.log_overlaps()

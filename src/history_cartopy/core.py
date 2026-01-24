@@ -479,11 +479,12 @@ def render_territories(ax, manifest, polygons_dir):
             logger.error(f"Unexpected error loading {file_name}: {e}")
 
 
-def render_events(ax, gazetteer, manifest, data_dir=None):
+def render_events(ax, gazetteer, manifest, placement_manager, data_dir=None):
     """Render event labels with optional icon, text above and date below."""
     # Resolve iconset path
     iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
+    pm = placement_manager
 
     events = manifest.get('events', [])
     logger.debug(f"Processing {len(events)} events")
@@ -508,6 +509,10 @@ def render_events(ax, gazetteer, manifest, data_dir=None):
         # Optional rotation
         rotation = item.get('rotation', 0)
 
+        # Create event group for placement tracking
+        event_id = text or date or f"event_{lon}_{lat}"
+        event_group = f"event_{event_id}"
+
         # Calculate text offsets
         if icon_name and iconset_path:
             # With icon: use anchor circle for text placement
@@ -528,24 +533,76 @@ def render_events(ax, gazetteer, manifest, data_dir=None):
             else:
                 ha = 'center' # North/South: text centered
 
+            # Track icon in placement manager
+            pm.add_icon(
+                f"event_icon_{event_id}",
+                (lon, lat),
+                size_pts=25,
+                priority=PRIORITY.get('event_icon', 90),
+                element_type='event_icon',
+                group=event_group,
+            )
+
             # Render icon at the location
             icon_centered = item.get('icon_centered', False)
             render_icon(ax, lon, lat, icon_name, iconset_path, centered=icon_centered)
 
-            # Render text/date offset from icon
+            # Track and render text/date offset from icon
             if text:
+                pm.add_label(
+                    f"event_text_{event_id}",
+                    (lon, lat),
+                    text,
+                    fontsize=LABEL_STYLES.get('event_text', {}).get('fontsize', 9),
+                    x_offset_pts=label_ox,
+                    y_offset_pts=label_oy + 2,
+                    priority=PRIORITY.get('event_label', 60),
+                    element_type='event_label',
+                    group=event_group,
+                )
                 apply_text(ax, lon, lat, text, 'event_text',
                            x_offset=label_ox, y_offset=label_oy + 2,
                            rotation=rotation, ha=ha, va='bottom')
             if date:
+                pm.add_label(
+                    f"event_date_{event_id}",
+                    (lon, lat),
+                    date,
+                    fontsize=LABEL_STYLES.get('event_date', {}).get('fontsize', 8),
+                    x_offset_pts=label_ox,
+                    y_offset_pts=label_oy - 2,
+                    priority=PRIORITY.get('event_label', 60),
+                    element_type='event_label',
+                    group=event_group,
+                )
                 apply_text(ax, lon, lat, date, 'event_date',
                            x_offset=label_ox, y_offset=label_oy - 2,
                            rotation=rotation, ha=ha, va='top')
         else:
             # No icon: render text/date centered at location
             if text:
+                pm.add_label(
+                    f"event_text_{event_id}",
+                    (lon, lat),
+                    text,
+                    fontsize=LABEL_STYLES.get('event_text', {}).get('fontsize', 9),
+                    y_offset_pts=3,
+                    priority=PRIORITY.get('event_label', 60),
+                    element_type='event_label',
+                    group=event_group,
+                )
                 apply_text(ax, lon, lat, text, 'event_text',
                            y_offset=3, rotation=rotation, ha='center', va='bottom')
             if date:
+                pm.add_label(
+                    f"event_date_{event_id}",
+                    (lon, lat),
+                    date,
+                    fontsize=LABEL_STYLES.get('event_date', {}).get('fontsize', 8),
+                    y_offset_pts=-3,
+                    priority=PRIORITY.get('event_label', 60),
+                    element_type='event_label',
+                    group=event_group,
+                )
                 apply_text(ax, lon, lat, date, 'event_date',
                            y_offset=-3, rotation=rotation, ha='center', va='top')
