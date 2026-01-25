@@ -291,7 +291,6 @@ def main():
     parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')
     parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow'], help='Override background resolution')
     parser.add_argument('--output', help='Override output filename')
-    parser.add_argument('--no-show', action='store_true', help='Save file without opening window (good for SSH)')
 
     args = parser.parse_args()
 
@@ -415,17 +414,11 @@ def main():
 
     plt.title(f"{manifest['metadata']['title']} ({manifest['metadata']['year']})")
 
-    # Save and/or Show
+    # Save
     # Don't use bbox_inches='tight' - we want exact dimensions as specified
     logger.info(f"Saving map to {out_file}")
     plt.savefig(out_file, dpi=dpi)
     logger.info(f"Map saved to {out_file}")
-
-    if not args.no_show:
-        try:
-            plt.show()
-        except Exception:
-            logger.warning("Could not open display. Map saved to file.")
 
 if __name__ == "__main__":
     main()
