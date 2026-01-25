@@ -2,7 +2,10 @@
 
 import math
 import pytest
-from history_cartopy.anchor import AnchorCircle, compute_campaign_angle, DEFAULT_ANGLES
+from history_cartopy.anchor import (
+    AnchorCircle, compute_campaign_angle, DEFAULT_ANGLES,
+    POSITION_ANGLES, POSITION_PRIORITY
+)
 
 
 class TestAnchorCircleBasics:
@@ -364,3 +367,92 @@ class TestEdgeCases:
         # With 3 items, slots are 0, 120, 240. 180 snaps to 240.
         # Campaign gets 240, others get remaining slots (0, 120)
         assert campaign_angle == 240
+
+
+class TestCandidateOffsets:
+    """Tests for get_candidate_offsets method (Imhof 8-position model)."""
+
+    def test_returns_8_positions(self):
+        """Should return exactly 8 candidate positions."""
+        ac = AnchorCircle()
+        candidates = ac.get_candidate_offsets()
+        assert len(candidates) == 8
+
+    def test_candidate_positions_in_priority_order(self):
+        """Candidates should be in Imhof priority order."""
+        ac = AnchorCircle()
+        candidates = ac.get_candidate_offsets()
+        position_names = [c[0] for c in candidates]
+        assert position_names == POSITION_PRIORITY
+        assert position_names == ['NE', 'E', 'NW', 'W', 'SE', 'SW', 'N', 'S']
+
+    def test_candidate_offsets_respect_radius(self):
+        """Offset magnitudes should equal anchor radius."""
+        ac = AnchorCircle(city_level=2)
+        candidates = ac.get_candidate_offsets(gap_pts=0)
+
+        for pos_name, x_off, y_off, ha, va in candidates:
+            distance = math.sqrt(x_off**2 + y_off**2)
+            assert distance == pytest.approx(ac.radius, abs=0.001), \
+                f"Position {pos_name} distance {distance} != radius {ac.radius}"
+
+    def test_candidate_offsets_with_gap(self):
+        """Gap should add to the offset magnitude."""
+        ac = AnchorCircle(city_level=2)
+        gap = 5.0
+        candidates = ac.get_candidate_offsets(gap_pts=gap)
+
+        expected_distance = ac.radius + gap
+        for pos_name, x_off, y_off, ha, va in candidates:
+            distance = math.sqrt(x_off**2 + y_off**2)
+            assert distance == pytest.approx(expected_distance, abs=0.001), \
+                f"Position {pos_name} distance {distance} != expected {expected_distance}"
+
+    def test_ne_position_is_northeast(self):
+        """NE position should have positive x and y offsets."""
+        ac = AnchorCircle()
+        candidates = ac.get_candidate_offsets()
+        ne_pos = next(c for c in candidates if c[0] == 'NE')
+        _, x_off, y_off, ha, va = ne_pos
+        assert x_off > 0, "NE x should be positive"
+        assert y_off > 0, "NE y should be positive"
+
+    def test_cardinal_directions(self):
+        """Cardinal directions should have correct signs."""
+        ac = AnchorCircle()
+        candidates = ac.get_candidate_offsets()
+        pos_dict = {c[0]: (c[1], c[2]) for c in candidates}
+
+        # North: y > 0, x ≈ 0
+        assert pos_dict['N'][1] > 0
+        assert abs(pos_dict['N'][0]) < 0.001
+
+        # South: y < 0, x ≈ 0
+        assert pos_dict['S'][1] < 0
+        assert abs(pos_dict['S'][0]) < 0.001
+
+        # East: x > 0, y ≈ 0
+        assert pos_dict['E'][0] > 0
+        assert abs(pos_dict['E'][1]) < 0.001
+
+        # West: x < 0, y ≈ 0
+        assert pos_dict['W'][0] < 0
+        assert abs(pos_dict['W'][1]) < 0.001
+
+    def test_diagonal_directions(self):
+        """Diagonal directions should have correct signs."""
+        ac = AnchorCircle()
+        candidates = ac.get_candidate_offsets()
+        pos_dict = {c[0]: (c[1], c[2]) for c in candidates}
+
+        # NE: x > 0, y > 0
+        assert pos_dict['NE'][0] > 0 and pos_dict['NE'][1] > 0
+
+        # NW: x < 0, y > 0
+        assert pos_dict['NW'][0] < 0 and pos_dict['NW'][1] > 0
+
+        # SE: x > 0, y < 0
+        assert pos_dict['SE'][0] > 0 and pos_dict['SE'][1] < 0
+
+        # SW: x < 0, y < 0
+        assert pos_dict['SW'][0] < 0 and pos_dict['SW'][1] < 0

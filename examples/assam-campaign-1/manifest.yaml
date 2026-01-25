@@ -81,15 +81,15 @@ campaigns:
     style: "invasion"
     label_below: "Mar"
 
-events:
-  - text: "Koch Bihar captured"
-    location: "Koch Bihar"
-    date: "Dec 9"
-    label_angle: 180
+# events:
+#   - text: "Koch Bihar captured"
+#     location: "Koch Bihar"
+#     date: "Dec 9"
+#     label_angle: 180
 
-  - text: "Ahom capital falls"
-    location: "Garhgaon"
-    date: "Mar 17"
-    icon: "battle"
-    icon_centered: true
-    label_angle: 90
+#   - text: "Ahom capital falls"
+#     location: "Garhgaon"
+#     date: "Mar 17"
+#     icon: "battle"
+#     icon_centered: true
+#     label_angle: 90

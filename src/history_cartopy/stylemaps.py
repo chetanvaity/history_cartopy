@@ -60,7 +60,7 @@ CAMPAIGN_STYLES = {
         'linewidth': 2.5,
         'linestyle': '-',        # Solid line for main force
         'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
-        'alpha': 0.8,
+        'alpha': 0.5,
         'type': 'power'
     },
     'boring': {

@@ -11,7 +11,12 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from PIL import Image
-from history_cartopy.core import load_data, render_labels, render_campaigns, render_territories, render_events
+from history_cartopy.core import (
+    load_data, render_labels, render_campaigns, render_territories, render_events,
+    collect_labels, render_labels_resolved,
+    collect_events, render_events_resolved,
+    collect_campaigns, render_campaigns_resolved,
+)
 from history_cartopy.border_styles import render_border
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
@@ -391,14 +396,48 @@ def main():
     dpp = get_deg_per_pt(ax)
     pm = PlacementManager(dpp)
 
-    logger.info("Rendering labels")
-    render_labels(ax, gazetteer, manifest, pm, data_dir=data_dir)
-    logger.info("Rendering campaigns")
-    render_campaigns(ax, gazetteer, manifest, pm)
-    logger.info("Rendering events")
-    render_events(ax, gazetteer, manifest, pm, data_dir=data_dir)
+    # =========================================================================
+    # THREE-PHASE LABEL PLACEMENT
+    # Phase 1: COLLECT - gather all label candidates with multiple positions
+    # Phase 2: RESOLVE - greedy algorithm picks best positions
+    # Phase 3: RENDER - draw labels at resolved positions
+    # =========================================================================
 
-    # Log any placement overlaps
+    # Phase 1: COLLECT
+    logger.info("Collecting labels")
+    city_candidates, river_data, region_data, city_render_data = collect_labels(
+        gazetteer, manifest, pm, data_dir=data_dir
+    )
+
+    logger.info("Collecting campaigns")
+    campaign_candidates, campaign_render_data = collect_campaigns(
+        gazetteer, manifest, pm
+    )
+
+    logger.info("Collecting events")
+    event_candidates, event_render_data = collect_events(
+        gazetteer, manifest, pm, data_dir=data_dir
+    )
+
+    # Phase 2: RESOLVE
+    logger.info("Resolving label overlaps")
+    all_candidates = city_candidates + campaign_candidates + event_candidates
+    resolved_positions = pm.resolve_greedy(all_candidates)
+    logger.info(f"Resolved {len(resolved_positions)} label positions")
+
+    # Phase 3: RENDER
+    logger.info("Rendering labels")
+    render_labels_resolved(ax, city_render_data, river_data, region_data,
+                           resolved_positions, gazetteer, manifest, data_dir=data_dir)
+
+    logger.info("Rendering campaigns")
+    render_campaigns_resolved(ax, campaign_render_data, resolved_positions)
+
+    logger.info("Rendering events")
+    render_events_resolved(ax, event_render_data, resolved_positions,
+                           data_dir=data_dir, manifest=manifest)
+
+    # Log any remaining placement overlaps
     pm.log_overlaps()
 
     # Scale bar

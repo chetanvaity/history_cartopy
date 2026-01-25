@@ -14,17 +14,47 @@ logger = logging.getLogger('history_cartopy.placement')
 
 
 # Priority levels for different element types
+# Higher priority = placed first, keeps preferred position
+# Lower priority = placed later, may need to move to avoid overlaps
 PRIORITY = {
-    'city_level_1': 100,  # Capital
+    # Fixed elements (dots, icons) - high priority
+    'city_level_1': 100,  # Capital dot
     'event_icon': 90,
-    'city_level_2': 80,
-    'city_level_3': 70,
-    'event_label': 60,
-    'city_level_4': 50,   # Modern place
-    'campaign_label': 45,  # Campaign labels
-    'river': 40,
+    'city_level_2': 80,   # Major city dot
+    'city_level_3': 70,   # Minor city dot
+    'city_level_4': 60,   # Modern place dot
+    # Campaign arrows - medium-high priority (labels avoid these)
+    'campaign_arrow': 55,
+    # Labels - lower priority so they can move around anchors
+    'city_label_1': 48,   # Capital label
+    'city_label_2': 46,   # Major city label
+    'city_label_3': 44,   # Minor city label
+    'city_label_4': 42,   # Modern place label
+    'campaign_label': 40,
+    'event_label': 38,
+    'river': 35,
     'region': 30,
 }
+
+
+@dataclass
+class LabelCandidate:
+    """A label with multiple candidate positions for greedy resolution."""
+    id: str
+    element_type: str  # 'city_label', 'event_label', etc.
+    priority: int
+    group: Optional[str]
+    # The different positions this label could take (in preference order)
+    positions: list  # list[PlacementElement]
+    # After resolution
+    resolved_idx: int = -1  # Which position was chosen (-1 = not resolved)
+
+    @property
+    def resolved(self):
+        """Get the resolved PlacementElement."""
+        if self.resolved_idx < 0:
+            raise ValueError(f"Candidate '{self.id}' not yet resolved")
+        return self.positions[self.resolved_idx]
 
 
 @dataclass
@@ -298,6 +328,86 @@ class PlacementManager:
         logger.debug(f"Added campaign label '{id}': {text}")
         return element
 
+    def add_campaign_arrow(
+        self,
+        id: str,
+        path: list,
+        linewidth_pts: float = 2.5,
+        priority: int = None,
+        group: str = None,
+        segment_length: int = 10,
+    ) -> list:
+        """
+        Add a campaign arrow path as multiple segment elements.
+
+        Instead of one large bounding box for the entire path, we break it
+        into smaller segments with tighter bounding boxes. This allows labels
+        to find positions that don't overlap with the actual arrow path.
+
+        Args:
+            id: Base identifier (segments will be id_0, id_1, etc.)
+            path: List of (lon, lat) coordinates forming the arrow path
+            linewidth_pts: Line width in points
+            priority: Higher = more important
+            group: Elements in same group don't count as overlapping
+            segment_length: Number of points per segment
+
+        Returns:
+            List of PlacementElements created (one per segment)
+        """
+        if priority is None:
+            priority = PRIORITY.get('campaign_arrow', 55)
+
+        if path is None or len(path) < 2:
+            logger.warning(f"Campaign arrow '{id}' has invalid path")
+            return []
+
+        # Minimal padding for line width
+        padding = linewidth_pts * self.dpp
+
+        elements = []
+        num_points = len(path)
+
+        # Break path into segments
+        for seg_start in range(0, num_points - 1, segment_length):
+            seg_end = min(seg_start + segment_length + 1, num_points)
+            segment = path[seg_start:seg_end]
+
+            if len(segment) < 2:
+                continue
+
+            # Compute bounding box for this segment
+            lons = [p[0] for p in segment]
+            lats = [p[1] for p in segment]
+
+            bbox = (
+                min(lons) - padding,
+                min(lats) - padding,
+                max(lons) + padding,
+                max(lats) + padding,
+            )
+
+            # Use segment midpoint as coords
+            mid_idx = len(segment) // 2
+            coords = tuple(segment[mid_idx])
+
+            seg_id = f"{id}_seg{seg_start}"
+            element = PlacementElement(
+                id=seg_id,
+                type='campaign_arrow',
+                coords=coords,
+                offset=(0, 0),
+                bbox=bbox,
+                priority=priority,
+                group=group,
+            )
+
+            self.elements[seg_id] = element
+            elements.append(element)
+
+        logger.debug(f"Added campaign arrow '{id}' as {len(elements)} segments")
+        return elements
+
     def would_overlap(self, element: PlacementElement) -> list[PlacementElement]:
         """
         Check if an element would overlap with existing elements.
@@ -377,3 +487,61 @@ class PlacementManager:
             e1_desc = f"{e1.type} '{e1.text or e1.id}'"
             e2_desc = f"{e2.type} '{e2.text or e2.id}'"
             logger.warning(f"  - {e1_desc} overlaps with {e2_desc}")
+
+    def resolve_greedy(self, candidates: list) -> dict:
+        """
+        Resolve label positions using priority-ordered greedy algorithm.
+
+        For each candidate (sorted by priority), tries positions in preference
+        order and picks the first that doesn't overlap with already-placed elements.
+
+        Args:
+            candidates: List of LabelCandidate with multiple positions each
+
+        Returns:
+            Dict mapping element ID to resolved PlacementElement
+        """
+        # Sort by priority (highest first)
+        sorted_candidates = sorted(candidates, key=lambda c: -c.priority)
+
+        resolved = {}
+        unresolved = []
+
+        for candidate in sorted_candidates:
+            placed = False
+            rejection_reasons = []  # Track why each position was rejected
+
+            for idx, position in enumerate(candidate.positions):
+                # Check against already-resolved elements
+                overlaps = self.would_overlap(position)
+                if not overlaps:
+                    # Success - use this position
+                    self.elements[position.id] = position
+                    candidate.resolved_idx = idx
+                    resolved[candidate.id] = position
+                    placed = True
+                    logger.debug(f"Placed '{candidate.id}' at position {idx}")
+                    break
+                else:
+                    # Track what caused the rejection
+                    overlap_ids = [o.id for o in overlaps]
+                    rejection_reasons.append((idx, overlap_ids))
+
+            if not placed:
+                # All positions overlap - use first (preferred) and log warning
+                position = candidate.positions[0]
+                self.elements[position.id] = position
+                candidate.resolved_idx = 0
+                resolved[candidate.id] = position
+                unresolved.append(candidate)
+                logger.warning(f"Could not place '{candidate.id}' without overlap")
+                # Log detailed rejection reasons
+                for pos_idx, overlap_ids in rejection_reasons:
+                    logger.debug(f"  Position {pos_idx} rejected due to: {overlap_ids}")
+
+        if unresolved:
+            logger.info(f"Greedy resolution: {len(resolved)} placed, {len(unresolved)} with overlaps")
+        else:
+            logger.debug(f"Greedy resolution: {len(resolved)} placed, all without overlap")
+
+        return resolved

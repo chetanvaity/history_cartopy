@@ -15,6 +15,34 @@ DEFAULT_ANGLES = {
     'label': 135,   # Southeast
 }
 
+# Position angles for 8-position Imhof model (degrees from North, clockwise)
+POSITION_ANGLES = {
+    'NE': 45,    # Priority 1 (Imhof's preferred)
+    'E': 90,     # Priority 2
+    'NW': 315,   # Priority 3
+    'W': 270,    # Priority 4
+    'SE': 135,   # Priority 5
+    'SW': 225,   # Priority 6
+    'N': 0,      # Priority 7
+    'S': 180,    # Priority 8
+}
+
+# Position names in priority order (Imhof's preference)
+POSITION_PRIORITY = ['NE', 'E', 'NW', 'W', 'SE', 'SW', 'N', 'S']
+
+# Text alignment for each position (ha, va)
+# This ensures text extends away from the anchor point
+POSITION_ALIGNMENT = {
+    'N':  ('center', 'bottom'),  # Text centered above
+    'S':  ('center', 'top'),     # Text centered below
+    'E':  ('left', 'center'),    # Text to the right
+    'W':  ('right', 'center'),   # Text to the left
+    'NE': ('left', 'bottom'),    # Text to upper-right
+    'NW': ('right', 'bottom'),   # Text to upper-left
+    'SE': ('left', 'top'),       # Text to lower-right
+    'SW': ('right', 'top'),      # Text to lower-left
+}
+
 
 class AnchorCircle:
     """
@@ -149,6 +177,52 @@ class AnchorCircle:
         if not self._resolved:
             self.resolve()
         return self._angles.get(attachment_index, 0)
+
+    def get_candidate_offsets(self, gap_pts: float = 0, text_height_pts: float = 0) -> list[tuple]:
+        """
+        Generate 8 candidate label offsets around the anchor circle.
+
+        Uses Imhof's 8-position model in priority order (NE, E, NW, W, SE, SW, N, S).
+
+        Args:
+            gap_pts: Additional gap between anchor edge and label start (in points)
+            text_height_pts: Height of the label text (used to adjust vertical positions)
+
+        Returns:
+            List of (position_name, x_offset_pts, y_offset_pts, ha, va) in priority order
+        """
+        candidates = []
+        total_radius = self.radius + gap_pts
+
+        for pos_name in POSITION_PRIORITY:
+            angle_deg = POSITION_ANGLES[pos_name]
+            # Convert to radians (0 = North, clockwise)
+            # Math convention: 0 = East, counter-clockwise
+            # So we adjust: math_angle = 90 - our_angle
+            angle_rad = math.radians(90 - angle_deg)
+
+            x_offset = total_radius * math.cos(angle_rad)
+            y_offset = total_radius * math.sin(angle_rad)
+
+            # Get alignment for this position
+            ha, va = POSITION_ALIGNMENT[pos_name]
+
+            # Adjust offset based on text height for positions where text
+            # needs to clear the anchor vertically
+            # For 'bottom' aligned text (N, NE, NW), add text_height to y
+            # so the text bottom edge clears the offset point
+            if va == 'bottom' and text_height_pts > 0:
+                # Text is anchored at bottom, extends upward
+                # No adjustment needed - offset point is where bottom of text goes
+                pass
+            elif va == 'top' and text_height_pts > 0:
+                # Text is anchored at top, extends downward
+                # No adjustment needed - offset point is where top of text goes
+                pass
+
+            candidates.append((pos_name, x_offset, y_offset, ha, va))
+
+        return candidates
 
 
 def compute_campaign_angle(from_coords, to_coords):

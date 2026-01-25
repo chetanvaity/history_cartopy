@@ -1,7 +1,7 @@
 """Tests for placement module - overlap detection and bounding boxes."""
 
 import pytest
-from history_cartopy.placement import PlacementManager, PlacementElement, PRIORITY
+from history_cartopy.placement import PlacementManager, PlacementElement, LabelCandidate, PRIORITY
 
 
 class TestPlacementElement:
@@ -271,3 +271,239 @@ class TestPriorityConstants:
         """Rivers and regions should have lowest priorities."""
         assert PRIORITY['river'] < PRIORITY['city_level_4']
         assert PRIORITY['region'] < PRIORITY['river']
+
+
+class TestLabelCandidate:
+    """Tests for LabelCandidate dataclass."""
+
+    def test_label_candidate_creation(self):
+        """Should create LabelCandidate with required fields."""
+        positions = [
+            PlacementElement(
+                id='test_pos1', type='city_label',
+                coords=(0, 0), offset=(0.1, 0.1),
+                bbox=(0, 0, 1, 1), priority=50
+            ),
+            PlacementElement(
+                id='test_pos2', type='city_label',
+                coords=(0, 0), offset=(0.2, 0.2),
+                bbox=(0, 0, 1, 1), priority=50
+            ),
+        ]
+        candidate = LabelCandidate(
+            id='test_label',
+            element_type='city_label',
+            priority=80,
+            group='city_test',
+            positions=positions,
+        )
+        assert candidate.id == 'test_label'
+        assert candidate.element_type == 'city_label'
+        assert candidate.priority == 80
+        assert len(candidate.positions) == 2
+        assert candidate.resolved_idx == -1
+
+    def test_resolved_property_raises_before_resolve(self):
+        """Accessing resolved before resolution should raise."""
+        candidate = LabelCandidate(
+            id='test',
+            element_type='city_label',
+            priority=50,
+            group=None,
+            positions=[],
+        )
+        with pytest.raises(ValueError, match="not yet resolved"):
+            _ = candidate.resolved
+
+    def test_resolved_property_returns_correct_element(self):
+        """resolved property should return the chosen position."""
+        pos1 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0.1, 0.1),
+            bbox=(0, 0, 1, 1), priority=50, text='First'
+        )
+        pos2 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0.2, 0.2),
+            bbox=(0, 0, 1, 1), priority=50, text='Second'
+        )
+        candidate = LabelCandidate(
+            id='test',
+            element_type='city_label',
+            priority=50,
+            group=None,
+            positions=[pos1, pos2],
+        )
+        candidate.resolved_idx = 1
+        assert candidate.resolved == pos2
+        assert candidate.resolved.text == 'Second'
+
+
+class TestResolveGreedy:
+    """Tests for PlacementManager.resolve_greedy method."""
+
+    @pytest.fixture
+    def manager(self):
+        """Create a PlacementManager with dpp=0.01."""
+        return PlacementManager(dpp=0.01)
+
+    def test_resolve_greedy_empty_list(self, manager):
+        """Empty candidates list should return empty dict."""
+        resolved = manager.resolve_greedy([])
+        assert resolved == {}
+
+    def test_resolve_greedy_single_candidate(self, manager):
+        """Single candidate should use first position."""
+        pos = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0.1, 0.1),
+            bbox=(0, 0, 0.1, 0.1), priority=50
+        )
+        candidate = LabelCandidate(
+            id='test',
+            element_type='city_label',
+            priority=50,
+            group=None,
+            positions=[pos],
+        )
+        resolved = manager.resolve_greedy([candidate])
+        assert 'test' in resolved
+        assert candidate.resolved_idx == 0
+
+    def test_resolve_greedy_no_overlaps(self, manager):
+        """Non-overlapping candidates should all use first position."""
+        # Two candidates far apart
+        pos1 = PlacementElement(
+            id='label1', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(0, 0, 0.1, 0.1), priority=50
+        )
+        pos2 = PlacementElement(
+            id='label2', type='city_label',
+            coords=(10, 10), offset=(0, 0),
+            bbox=(10, 10, 10.1, 10.1), priority=50
+        )
+        c1 = LabelCandidate(id='label1', element_type='city_label',
+                           priority=50, group=None, positions=[pos1])
+        c2 = LabelCandidate(id='label2', element_type='city_label',
+                           priority=50, group=None, positions=[pos2])
+
+        resolved = manager.resolve_greedy([c1, c2])
+        assert len(resolved) == 2
+        assert c1.resolved_idx == 0
+        assert c2.resolved_idx == 0
+
+    def test_resolve_greedy_picks_first_available(self, manager):
+        """Should pick first non-overlapping position."""
+        # Add an obstacle at position (0, 0)
+        manager.add_dot('obstacle', coords=(0, 0), size_pts=100)  # 1 deg bbox
+
+        # Create candidate with 3 positions - first overlaps, second doesn't
+        pos1 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(-0.2, -0.2, 0.2, 0.2), priority=50  # Overlaps obstacle
+        )
+        pos2 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(2, 0),
+            bbox=(1.8, -0.2, 2.2, 0.2), priority=50  # No overlap
+        )
+        pos3 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(3, 0),
+            bbox=(2.8, -0.2, 3.2, 0.2), priority=50  # No overlap
+        )
+        candidate = LabelCandidate(
+            id='test',
+            element_type='city_label',
+            priority=50,
+            group=None,
+            positions=[pos1, pos2, pos3],
+        )
+
+        resolved = manager.resolve_greedy([candidate])
+        assert candidate.resolved_idx == 1  # Second position (first non-overlapping)
+
+    def test_resolve_greedy_priority_order(self, manager):
+        """Higher priority candidates should be placed first."""
+        # Create two candidates that would overlap at same position
+        high_pos = PlacementElement(
+            id='high', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(0, 0, 1, 1), priority=100
+        )
+        low_pos1 = PlacementElement(
+            id='low', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(0, 0, 1, 1), priority=50  # Overlaps with high
+        )
+        low_pos2 = PlacementElement(
+            id='low', type='city_label',
+            coords=(0, 0), offset=(2, 0),
+            bbox=(2, 0, 3, 1), priority=50  # Alternative position
+        )
+
+        high_cand = LabelCandidate(id='high', element_type='city_label',
+                                   priority=100, group=None, positions=[high_pos])
+        low_cand = LabelCandidate(id='low', element_type='city_label',
+                                  priority=50, group=None, positions=[low_pos1, low_pos2])
+
+        resolved = manager.resolve_greedy([low_cand, high_cand])  # Order shouldn't matter
+
+        # High priority gets first choice (position 0)
+        assert high_cand.resolved_idx == 0
+        # Low priority must use alternative (position 1)
+        assert low_cand.resolved_idx == 1
+
+    def test_resolve_greedy_fallback_to_first(self, manager):
+        """When all positions overlap, should use first and log warning."""
+        # Add obstacle
+        manager.add_dot('obstacle', coords=(0, 0), size_pts=200)
+
+        # All positions overlap
+        pos1 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(-0.2, -0.2, 0.2, 0.2), priority=50
+        )
+        pos2 = PlacementElement(
+            id='test', type='city_label',
+            coords=(0, 0), offset=(0.1, 0),
+            bbox=(-0.1, -0.2, 0.3, 0.2), priority=50
+        )
+        candidate = LabelCandidate(
+            id='test',
+            element_type='city_label',
+            priority=50,
+            group=None,
+            positions=[pos1, pos2],
+        )
+
+        resolved = manager.resolve_greedy([candidate])
+        # Should fall back to first position even though it overlaps
+        assert candidate.resolved_idx == 0
+        assert 'test' in resolved
+
+    def test_resolve_greedy_respects_groups(self, manager):
+        """Elements in same group should not count as overlapping."""
+        # Two positions that would overlap, but same group
+        pos1 = PlacementElement(
+            id='label', type='city_label',
+            coords=(0, 0), offset=(0, 0),
+            bbox=(0, 0, 1, 1), priority=50, group='city_A'
+        )
+        # Add a dot in same group
+        manager.add_dot('dot', coords=(0.5, 0.5), size_pts=50, group='city_A')
+
+        candidate = LabelCandidate(
+            id='label',
+            element_type='city_label',
+            priority=50,
+            group='city_A',
+            positions=[pos1],
+        )
+
+        resolved = manager.resolve_greedy([candidate])
+        # Should succeed at first position (same group doesn't count as overlap)
+        assert candidate.resolved_idx == 0
