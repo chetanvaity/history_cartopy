@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from PIL import Image
-from history_cartopy.core import (
-    load_data, render_labels, render_campaigns, render_territories, render_events,
-    collect_labels, render_labels_resolved,
-    collect_events, render_events_resolved,
-    collect_campaigns, render_campaigns_resolved,
-    collect_arrow_candidates, collect_campaign_labels,
+from history_cartopy.core import load_data
+from history_cartopy.labels import collect_labels, render_labels_resolved
+from history_cartopy.events import collect_events, render_events_resolved
+from history_cartopy.campaigns import (
+    collect_arrow_candidates, collect_campaign_labels, render_campaigns_resolved
 )
+from history_cartopy.territories import render_territories
 from history_cartopy.border_styles import render_border
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
@@ -456,9 +456,6 @@ def main():
     logger.info("Rendering events")
     render_events_resolved(ax, event_render_data, resolved_positions,
                            data_dir=data_dir, manifest=manifest)
-
-    # Log any remaining placement overlaps
-    pm.log_overlaps()
 
     # Scale bar
     scale_bar = manifest['metadata'].get('scale_bar', False)
