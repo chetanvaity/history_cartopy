@@ -16,6 +16,7 @@ from history_cartopy.core import (
     collect_labels, render_labels_resolved,
     collect_events, render_events_resolved,
     collect_campaigns, render_campaigns_resolved,
+    collect_arrow_candidates, collect_campaign_labels,
 )
 from history_cartopy.border_styles import render_border
 from history_cartopy.placement import PlacementManager
@@ -397,21 +398,18 @@ def main():
     pm = PlacementManager(dpp)
 
     # =========================================================================
-    # THREE-PHASE LABEL PLACEMENT
-    # Phase 1: COLLECT - gather all label candidates with multiple positions
-    # Phase 2: RESOLVE - greedy algorithm picks best positions
-    # Phase 3: RENDER - draw labels at resolved positions
+    # TWO-PASS LABEL PLACEMENT
+    # Phase 1: COLLECT - gather city/event label candidates
+    # Phase 2a: RESOLVE ARROWS - pick gap distance for campaign arrows
+    # Phase 2b: COLLECT CAMPAIGN LABELS - generate labels from resolved arrows
+    # Phase 2c: RESOLVE ALL LABELS - greedy algorithm picks best positions
+    # Phase 3: RENDER - draw everything at resolved positions
     # =========================================================================
 
-    # Phase 1: COLLECT
+    # Phase 1: COLLECT (cities, rivers, regions, events)
     logger.info("Collecting labels")
     city_candidates, river_data, region_data, city_render_data = collect_labels(
         gazetteer, manifest, pm, data_dir=data_dir
-    )
-
-    logger.info("Collecting campaigns")
-    campaign_candidates, campaign_render_data = collect_campaigns(
-        gazetteer, manifest, pm
     )
 
     logger.info("Collecting events")
@@ -419,7 +417,29 @@ def main():
         gazetteer, manifest, pm, data_dir=data_dir
     )
 
-    # Phase 2: RESOLVE
+    # Collect arrow candidates (with 2x, 3x, 4x gap variants)
+    logger.info("Collecting campaign arrow candidates")
+    arrow_candidates, campaign_render_data = collect_arrow_candidates(
+        gazetteer, manifest, pm
+    )
+
+    # Phase 2a: RESOLVE ARROWS
+    # City dots/icons are already in PM from collect_labels(), so arrows can avoid them
+    logger.info("Resolving arrow gaps")
+    resolved_arrows = pm.resolve_arrows(arrow_candidates)
+    logger.info(f"Resolved {len(resolved_arrows)} arrow gaps")
+
+    # Update campaign_render_data with resolved geometry
+    for data in campaign_render_data:
+        arrow_id = f"campaign_arrow_{data['idx']}"
+        if arrow_id in resolved_arrows:
+            data['geometry'] = resolved_arrows[arrow_id].resolved_geometry
+
+    # Phase 2b: COLLECT CAMPAIGN LABELS (after arrows resolved)
+    logger.info("Collecting campaign labels from resolved arrows")
+    campaign_candidates = collect_campaign_labels(manifest, resolved_arrows, pm)
+
+    # Phase 2c: RESOLVE ALL LABELS
     logger.info("Resolving label overlaps")
     all_candidates = city_candidates + campaign_candidates + event_candidates
     resolved_positions = pm.resolve_greedy(all_candidates)

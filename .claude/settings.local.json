@@ -8,7 +8,8 @@
       "Bash(find:*)",
       "Bash(python3 -m pytest:*)",
       "Bash(~/hcvenv/bin/python -m pytest:*)",
-      "Bash(~/hcvenv/bin/python -m history_cartopy.render_map:*)"
+      "Bash(~/hcvenv/bin/python -m history_cartopy.render_map:*)",
+      "Bash(grep:*)"
     ]
   }
 }

@@ -61,17 +61,7 @@ campaigns:
     label_below: "Jan 1663"
 
 events:
-  - text: "Farthest point"
-    location: "Namrup"
-    date: "Nov 20"
-    label_angle: 90
-
-  - text: "Treaty signed"
-    location: "Garhgaon"
-    date: "Dec"
-    label_angle: 270
-
   - text: "Mir Jumla falls ill"
-    location: "Tipam"
+    coords: [96.35, 27.15] 
     date: "Dec 10"
     label_angle: 180

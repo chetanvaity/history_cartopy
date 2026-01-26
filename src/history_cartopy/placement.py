@@ -58,6 +58,41 @@ class LabelCandidate:
 
 
 @dataclass
+class ArrowCandidate:
+    """A campaign arrow with multiple gap distance options."""
+    id: str
+    campaign_idx: int
+    priority: int
+    group: str
+    # Arrow variants at different gap distances
+    # Each has 'gap_multiplier', 'path', 'geometry'
+    variants: list
+    # After resolution
+    resolved_idx: int = -1
+
+    @property
+    def resolved_path(self):
+        """Get the resolved arrow path."""
+        if self.resolved_idx < 0:
+            raise ValueError(f"Arrow {self.id} not yet resolved")
+        return self.variants[self.resolved_idx]['path']
+
+    @property
+    def resolved_gap(self):
+        """Get the resolved gap multiplier."""
+        if self.resolved_idx < 0:
+            raise ValueError(f"Arrow {self.id} not yet resolved")
+        return self.variants[self.resolved_idx]['gap_multiplier']
+
+    @property
+    def resolved_geometry(self):
+        """Get the resolved geometry dict."""
+        if self.resolved_idx < 0:
+            raise ValueError(f"Arrow {self.id} not yet resolved")
+        return self.variants[self.resolved_idx]['geometry']
+
+
+@dataclass
 class PlacementElement:
     """Represents a placed label or icon on the map."""
     id: str
@@ -545,3 +580,135 @@ class PlacementManager:
             logger.debug(f"Greedy resolution: {len(resolved)} placed, all without overlap")
 
         return resolved
+
+    def resolve_arrows(self, arrow_candidates: list) -> dict:
+        """
+        Resolve arrow gap distances using greedy algorithm.
+
+        Tries shortest gap (2x) first, falls back to larger gaps (3x, 4x) if conflicts.
+
+        Args:
+            arrow_candidates: List of ArrowCandidate, each with variants at different gaps
+
+        Returns:
+            Dict mapping arrow ID to resolved ArrowCandidate
+        """
+        resolved = {}
+
+        for candidate in arrow_candidates:
+            placed = False
+
+            for idx, variant in enumerate(candidate.variants):
+                # Create temporary segment elements for overlap check
+                temp_elements = self._create_arrow_segments_temp(
+                    f"temp_{candidate.id}",
+                    variant['path'],
+                    linewidth_pts=2.5
+                )
+
+                # Check if any segment overlaps with existing elements
+                has_overlap = False
+                for elem in temp_elements:
+                    if self.would_overlap(elem):
+                        has_overlap = True
+                        break
+
+                if not has_overlap:
+                    # Success - use this gap distance
+                    candidate.resolved_idx = idx
+                    # Add actual segments to PM
+                    self.add_campaign_arrow(
+                        candidate.id,
+                        path=variant['path'],
+                        linewidth_pts=2.5,
+                        priority=candidate.priority,
+                        group=candidate.group,
+                    )
+                    resolved[candidate.id] = candidate
+                    placed = True
+                    logger.debug(f"Arrow {candidate.id} placed at {variant['gap_multiplier']}x gap")
+                    break
+
+            if not placed:
+                # All gaps conflict - use largest (4x) and log warning
+                candidate.resolved_idx = len(candidate.variants) - 1
+                variant = candidate.variants[-1]
+                self.add_campaign_arrow(
+                    candidate.id,
+                    path=variant['path'],
+                    linewidth_pts=2.5,
+                    priority=candidate.priority,
+                    group=candidate.group,
+                )
+                resolved[candidate.id] = candidate
+                logger.warning(f"Arrow {candidate.id} conflicts even at {variant['gap_multiplier']}x gap")
+
+        return resolved
+
+    def _create_arrow_segments_temp(
+        self,
+        id: str,
+        path: list,
+        linewidth_pts: float = 2.5,
+        segment_length: int = 10,
+    ) -> list:
+        """
+        Create temporary PlacementElements for arrow segments without adding to manager.
+
+        Used for checking overlaps before committing to a particular arrow variant.
+
+        Args:
+            id: Base identifier
+            path: List of (lon, lat) coordinates
+            linewidth_pts: Line width in points
+            segment_length: Number of points per segment
+
+        Returns:
+            List of PlacementElements (not added to self.elements)
+        """
+        if path is None or len(path) < 2:
+            return []
+
+        # Minimal padding for line width
+        padding = linewidth_pts * self.dpp
+
+        elements = []
+        num_points = len(path)
+
+        # Break path into segments
+        for seg_start in range(0, num_points - 1, segment_length):
+            seg_end = min(seg_start + segment_length + 1, num_points)
+            segment = path[seg_start:seg_end]
+
+            if len(segment) < 2:
+                continue
+
+            # Compute bounding box for this segment
+            lons = [p[0] for p in segment]
+            lats = [p[1] for p in segment]
+
+            bbox = (
+                min(lons) - padding,
+                min(lats) - padding,
+                max(lons) + padding,
+                max(lats) + padding,
+            )
+
+            # Use segment midpoint as coords
+            mid_idx = len(segment) // 2
+            coords = tuple(segment[mid_idx])
+
+            seg_id = f"{id}_seg{seg_start}"
+            element = PlacementElement(
+                id=seg_id,
+                type='campaign_arrow',
+                coords=coords,
+                offset=(0, 0),
+                bbox=bbox,
+                priority=PRIORITY.get('campaign_arrow', 55),
+                group=None,  # No group for temp elements
+            )
+
+            elements.append(element)
+
+        return elements

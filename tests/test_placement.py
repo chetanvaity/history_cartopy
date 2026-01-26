@@ -1,7 +1,7 @@
 """Tests for placement module - overlap detection and bounding boxes."""
 
 import pytest
-from history_cartopy.placement import PlacementManager, PlacementElement, LabelCandidate, PRIORITY
+from history_cartopy.placement import PlacementManager, PlacementElement, LabelCandidate, ArrowCandidate, PRIORITY
 
 
 class TestPlacementElement:
@@ -507,3 +507,256 @@ class TestResolveGreedy:
         resolved = manager.resolve_greedy([candidate])
         # Should succeed at first position (same group doesn't count as overlap)
         assert candidate.resolved_idx == 0
+
+
+class TestArrowCandidate:
+    """Tests for ArrowCandidate dataclass."""
+
+    def test_arrow_candidate_creation(self):
+        """Should create ArrowCandidate with required fields."""
+        import numpy as np
+        path_2x = np.array([[0, 0], [1, 1], [2, 2]])
+        path_3x = np.array([[0.1, 0.1], [1.1, 1.1], [2.1, 2.1]])
+        path_4x = np.array([[0.2, 0.2], [1.2, 1.2], [2.2, 2.2]])
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path_2x, 'geometry': {'full_path': path_2x}},
+            {'gap_multiplier': 3.0, 'path': path_3x, 'geometry': {'full_path': path_3x}},
+            {'gap_multiplier': 4.0, 'path': path_4x, 'geometry': {'full_path': path_4x}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+
+        assert candidate.id == 'campaign_arrow_0'
+        assert candidate.campaign_idx == 0
+        assert candidate.priority == 55
+        assert len(candidate.variants) == 3
+        assert candidate.resolved_idx == -1
+
+    def test_resolved_path_raises_before_resolve(self):
+        """Accessing resolved_path before resolution should raise."""
+        candidate = ArrowCandidate(
+            id='test',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=[],
+        )
+        with pytest.raises(ValueError, match="not yet resolved"):
+            _ = candidate.resolved_path
+
+    def test_resolved_gap_raises_before_resolve(self):
+        """Accessing resolved_gap before resolution should raise."""
+        candidate = ArrowCandidate(
+            id='test',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=[],
+        )
+        with pytest.raises(ValueError, match="not yet resolved"):
+            _ = candidate.resolved_gap
+
+    def test_resolved_properties_return_correct_values(self):
+        """resolved properties should return correct variant data."""
+        import numpy as np
+        path_2x = np.array([[0, 0], [1, 1]])
+        path_3x = np.array([[0.5, 0.5], [1.5, 1.5]])
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path_2x, 'geometry': {'full_path': path_2x}},
+            {'gap_multiplier': 3.0, 'path': path_3x, 'geometry': {'full_path': path_3x}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='test',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+        candidate.resolved_idx = 1  # Select 3x variant
+
+        assert candidate.resolved_gap == 3.0
+        assert candidate.resolved_path is path_3x
+        assert candidate.resolved_geometry == {'full_path': path_3x}
+
+
+class TestResolveArrows:
+    """Tests for PlacementManager.resolve_arrows method."""
+
+    @pytest.fixture
+    def manager(self):
+        """Create a PlacementManager with dpp=0.01."""
+        return PlacementManager(dpp=0.01)
+
+    def test_resolve_arrows_empty_list(self, manager):
+        """Empty candidates list should return empty dict."""
+        resolved = manager.resolve_arrows([])
+        assert resolved == {}
+
+    def test_resolve_arrows_picks_shortest(self, manager):
+        """Should pick shortest gap (2x) when no conflicts."""
+        import numpy as np
+        # Create paths far from any obstacles
+        path_2x = np.array([[10.0, 10.0], [11.0, 11.0], [12.0, 12.0]])
+        path_3x = np.array([[10.5, 10.5], [11.5, 11.5], [12.5, 12.5]])
+        path_4x = np.array([[11.0, 11.0], [12.0, 12.0], [13.0, 13.0]])
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path_2x.tolist(), 'geometry': {'full_path': path_2x}},
+            {'gap_multiplier': 3.0, 'path': path_3x.tolist(), 'geometry': {'full_path': path_3x}},
+            {'gap_multiplier': 4.0, 'path': path_4x.tolist(), 'geometry': {'full_path': path_4x}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+
+        resolved = manager.resolve_arrows([candidate])
+
+        assert 'campaign_arrow_0' in resolved
+        assert candidate.resolved_idx == 0  # 2x chosen
+        assert candidate.resolved_gap == 2.0
+
+    def test_resolve_arrows_falls_back_to_larger_gap(self, manager):
+        """Should fall back to 3x or 4x when 2x conflicts with obstacles."""
+        import numpy as np
+
+        # Add an obstacle that the 2x path will overlap
+        manager.add_dot('obstacle', coords=(0.5, 0.5), size_pts=100)  # 1 deg bbox at (0.5, 0.5)
+
+        # 2x path goes through obstacle, 3x path avoids it
+        path_2x = np.array([[0.0, 0.0], [0.5, 0.5], [1.0, 1.0]])  # Through obstacle
+        path_3x = np.array([[0.0, 2.0], [0.5, 2.5], [1.0, 3.0]])  # Avoids obstacle
+        path_4x = np.array([[0.0, 3.0], [0.5, 3.5], [1.0, 4.0]])  # Also avoids
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path_2x.tolist(), 'geometry': {'full_path': path_2x}},
+            {'gap_multiplier': 3.0, 'path': path_3x.tolist(), 'geometry': {'full_path': path_3x}},
+            {'gap_multiplier': 4.0, 'path': path_4x.tolist(), 'geometry': {'full_path': path_4x}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+
+        resolved = manager.resolve_arrows([candidate])
+
+        assert 'campaign_arrow_0' in resolved
+        assert candidate.resolved_idx == 1  # 3x chosen (first non-overlapping)
+        assert candidate.resolved_gap == 3.0
+
+    def test_resolve_arrows_uses_largest_when_all_conflict(self, manager):
+        """Should use largest gap (4x) and log warning when all gaps conflict."""
+        import numpy as np
+
+        # Add a large obstacle that all paths will overlap
+        manager.add_dot('big_obstacle', coords=(0.5, 0.5), size_pts=500)  # 5 deg bbox
+
+        # All paths go through the obstacle
+        path_2x = np.array([[0.0, 0.0], [0.5, 0.5], [1.0, 1.0]])
+        path_3x = np.array([[0.0, 0.0], [0.5, 0.5], [1.0, 1.0]])
+        path_4x = np.array([[0.0, 0.0], [0.5, 0.5], [1.0, 1.0]])
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path_2x.tolist(), 'geometry': {'full_path': path_2x}},
+            {'gap_multiplier': 3.0, 'path': path_3x.tolist(), 'geometry': {'full_path': path_3x}},
+            {'gap_multiplier': 4.0, 'path': path_4x.tolist(), 'geometry': {'full_path': path_4x}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+
+        resolved = manager.resolve_arrows([candidate])
+
+        assert 'campaign_arrow_0' in resolved
+        assert candidate.resolved_idx == 2  # 4x (largest) chosen as fallback
+        assert candidate.resolved_gap == 4.0
+
+    def test_resolve_arrows_adds_arrow_segments_to_manager(self, manager):
+        """Resolved arrows should add segment elements to the manager."""
+        import numpy as np
+        path = np.array([[10.0, 10.0], [11.0, 11.0], [12.0, 12.0]])
+
+        variants = [
+            {'gap_multiplier': 2.0, 'path': path.tolist(), 'geometry': {'full_path': path}},
+        ]
+
+        candidate = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=variants,
+        )
+
+        # Before resolve, no arrow segments
+        arrow_elements_before = [e for e in manager.elements if 'campaign_arrow' in e]
+        assert len(arrow_elements_before) == 0
+
+        manager.resolve_arrows([candidate])
+
+        # After resolve, arrow segments should be added
+        arrow_elements_after = [e for e in manager.elements if 'campaign_arrow' in e]
+        assert len(arrow_elements_after) > 0
+
+    def test_resolve_arrows_multiple_campaigns(self, manager):
+        """Should resolve multiple campaigns independently."""
+        import numpy as np
+
+        # Two campaigns far apart
+        path1_2x = np.array([[0.0, 0.0], [1.0, 1.0]])
+        path1_3x = np.array([[0.1, 0.1], [1.1, 1.1]])
+        path2_2x = np.array([[10.0, 10.0], [11.0, 11.0]])
+        path2_3x = np.array([[10.1, 10.1], [11.1, 11.1]])
+
+        candidate1 = ArrowCandidate(
+            id='campaign_arrow_0',
+            campaign_idx=0,
+            priority=55,
+            group='campaign_0',
+            variants=[
+                {'gap_multiplier': 2.0, 'path': path1_2x.tolist(), 'geometry': {'full_path': path1_2x}},
+                {'gap_multiplier': 3.0, 'path': path1_3x.tolist(), 'geometry': {'full_path': path1_3x}},
+            ],
+        )
+
+        candidate2 = ArrowCandidate(
+            id='campaign_arrow_1',
+            campaign_idx=1,
+            priority=55,
+            group='campaign_1',
+            variants=[
+                {'gap_multiplier': 2.0, 'path': path2_2x.tolist(), 'geometry': {'full_path': path2_2x}},
+                {'gap_multiplier': 3.0, 'path': path2_3x.tolist(), 'geometry': {'full_path': path2_3x}},
+            ],
+        )
+
+        resolved = manager.resolve_arrows([candidate1, candidate2])
+
+        assert len(resolved) == 2
+        assert 'campaign_arrow_0' in resolved
+        assert 'campaign_arrow_1' in resolved
+        # Both should pick 2x (shortest) since they don't conflict
+        assert candidate1.resolved_gap == 2.0
+        assert candidate2.resolved_gap == 2.0
