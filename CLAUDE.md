@@ -24,3 +24,7 @@ The backgrounds used are NaturalEarth provided images of the world.
 ## Placement Manager
 - Module to resolve candidate positions for labels, arrows, etc to get a visually pleasing decluttered map.
 
+# Run
+
+The python venv to use is ~/hcvenv/
+

@@ -106,6 +106,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager):
         style_key = item.get('style', 'invasion')
         path_type = item.get('path_type', 'spline')
         arrows = item.get('arrows', 'final')
+        curvature = item.get('rad', 0.0)
 
         campaign_group = f"campaign_{idx}"
 
@@ -130,7 +131,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager):
                 )
 
             # Compute geometry with this gap
-            geometry = _get_multistop_geometry(adjusted_coords, path_type=path_type)
+            geometry = _get_multistop_geometry(adjusted_coords, path_type=path_type, curvature=curvature)
             if geometry is None:
                 continue
 

@@ -35,6 +35,51 @@ def _catmull_rom_segment(p0, p1, p2, p3, num_samples=50):
     )
 
 
+def _quadratic_bezier(p0, p2, curvature=0.0, num_samples=50):
+    """
+    Generate quadratic Bezier curve between p0 and p2.
+
+    Control point is placed perpendicular to midpoint at a distance
+    proportional to segment length times curvature.
+
+    Args:
+        p0: Start point as (x, y) array
+        p2: End point as (x, y) array
+        curvature: Perpendicular offset as fraction of segment length.
+                   Positive = curve left (facing p2 from p0)
+                   Negative = curve right
+                   0 = straight line
+        num_samples: Number of points to generate
+
+    Returns:
+        np.array of shape (num_samples, 2)
+    """
+    p0 = np.asarray(p0)
+    p2 = np.asarray(p2)
+
+    # Direction vector
+    direction = p2 - p0
+    length = np.linalg.norm(direction)
+
+    if length == 0:
+        return np.tile(p0, (num_samples, 1))
+
+    # Midpoint
+    midpoint = (p0 + p2) / 2
+
+    # Perpendicular unit vector (90 degrees counter-clockwise)
+    perp = np.array([-direction[1], direction[0]]) / length
+
+    # Control point offset from midpoint
+    p1 = midpoint + perp * length * curvature
+
+    # Quadratic Bezier: B(t) = (1-t)^2 * P0 + 2*(1-t)*t * P1 + t^2 * P2
+    t = np.linspace(0, 1, num_samples)[:, None]
+    curve = (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+    return curve
+
+
 def _compute_segment_info(path):
     """
     Compute segment metadata from a path array.
@@ -91,7 +136,7 @@ def _compute_segment_info(path):
     }
 
 
-def _get_multistop_geometry(waypoints, path_type='spline', num_samples=50):
+def _get_multistop_geometry(waypoints, path_type='spline', num_samples=50, curvature=0.0):
     """
     Compute geometry for multi-waypoint campaign.
 
@@ -99,6 +144,8 @@ def _get_multistop_geometry(waypoints, path_type='spline', num_samples=50):
         waypoints: List of (lon, lat) coordinates (minimum 2)
         path_type: 'spline' or 'segments'
         num_samples: Points per segment for spline
+        curvature: For 2-point paths, perpendicular offset as fraction of length.
+                   Positive = curve left, negative = curve right, 0 = straight.
 
     Returns:
         dict with:
@@ -115,7 +162,7 @@ def _get_multistop_geometry(waypoints, path_type='spline', num_samples=50):
 
     segments = []
 
-    if path_type == 'segments' or n == 2:
+    if path_type == 'segments':
         # Straight line segments between waypoints
         all_paths = []
         for i in range(n - 1):
@@ -129,6 +176,15 @@ def _get_multistop_geometry(waypoints, path_type='spline', num_samples=50):
         if not all_paths:
             return None
         full_path = np.vstack(all_paths)
+
+    elif n == 2:
+        # Two points: use quadratic Bezier with curvature
+        seg_path = _quadratic_bezier(points[0], points[1], curvature, num_samples)
+        seg_info = _compute_segment_info(seg_path)
+        if seg_info is None:
+            return None
+        segments.append(seg_info)
+        full_path = seg_path
 
     else:
         # Catmull-Rom spline through all waypoints
