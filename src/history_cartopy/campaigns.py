@@ -213,6 +213,7 @@ def collect_campaign_labels(manifest, resolved_arrows, placement_manager):
 
         if label_above:
             above_positions = []
+            # Primary positions: above the arrow (using positive normal)
             for seg_idx, candidate in enumerate(candidates):
                 element = pm.add_campaign_label(
                     id=f"campaign_{idx}_above_seg{seg_idx}",
@@ -226,7 +227,26 @@ def collect_campaign_labels(manifest, resolved_arrows, placement_manager):
                 element.id = f"campaign_{idx}_above"
                 # Store segment info for rendering
                 element.segment_idx = seg_idx
+                element.is_swapped = False
                 pm.remove(f"campaign_{idx}_above_seg{seg_idx}")
+                above_positions.append(element)
+
+            # Swapped positions: below the arrow (using negative normal)
+            # This gives more placement options when avoiding clutter
+            for seg_idx, candidate in enumerate(candidates):
+                element = pm.add_campaign_label(
+                    id=f"campaign_{idx}_above_swap_seg{seg_idx}",
+                    coords=tuple(candidate['midpoint']),
+                    text=label_above,
+                    fontsize=fontsize_above,
+                    rotation=candidate['angle'],
+                    normal=(-candidate['normal'][0], -candidate['normal'][1]),
+                    group=campaign_group,
+                )
+                element.id = f"campaign_{idx}_above"
+                element.segment_idx = seg_idx
+                element.is_swapped = True
+                pm.remove(f"campaign_{idx}_above_swap_seg{seg_idx}")
                 above_positions.append(element)
 
             campaign_candidates.append(LabelCandidate(
@@ -239,6 +259,7 @@ def collect_campaign_labels(manifest, resolved_arrows, placement_manager):
 
         if label_below:
             below_positions = []
+            # Primary positions: below the arrow (using negative normal)
             for seg_idx, candidate in enumerate(candidates):
                 element = pm.add_campaign_label(
                     id=f"campaign_{idx}_below_seg{seg_idx}",
@@ -251,7 +272,26 @@ def collect_campaign_labels(manifest, resolved_arrows, placement_manager):
                 )
                 element.id = f"campaign_{idx}_below"
                 element.segment_idx = seg_idx
+                element.is_swapped = False
                 pm.remove(f"campaign_{idx}_below_seg{seg_idx}")
+                below_positions.append(element)
+
+            # Swapped positions: above the arrow (using positive normal)
+            # This gives more placement options when avoiding clutter
+            for seg_idx, candidate in enumerate(candidates):
+                element = pm.add_campaign_label(
+                    id=f"campaign_{idx}_below_swap_seg{seg_idx}",
+                    coords=tuple(candidate['midpoint']),
+                    text=label_below,
+                    fontsize=fontsize_below,
+                    rotation=candidate['angle'],
+                    normal=tuple(candidate['normal']),
+                    group=campaign_group,
+                )
+                element.id = f"campaign_{idx}_below"
+                element.segment_idx = seg_idx
+                element.is_swapped = True
+                pm.remove(f"campaign_{idx}_below_swap_seg{seg_idx}")
                 below_positions.append(element)
 
             campaign_candidates.append(LabelCandidate(
@@ -294,16 +334,24 @@ def render_campaigns_resolved(ax, campaign_render_data, resolved_positions):
         above_id = f"campaign_{idx}_above"
         below_id = f"campaign_{idx}_below"
 
-        # Get the resolved segment index
+        # Get the resolved segment index and check for swapped labels
         resolved_seg_idx = None
+        above_swapped = False
+        below_swapped = False
+
         if above_id in resolved_positions:
             resolved = resolved_positions[above_id]
             if hasattr(resolved, 'segment_idx'):
                 resolved_seg_idx = resolved.segment_idx
-        elif below_id in resolved_positions:
+            if hasattr(resolved, 'is_swapped'):
+                above_swapped = resolved.is_swapped
+
+        if below_id in resolved_positions:
             resolved = resolved_positions[below_id]
-            if hasattr(resolved, 'segment_idx'):
+            if resolved_seg_idx is None and hasattr(resolved, 'segment_idx'):
                 resolved_seg_idx = resolved.segment_idx
+            if hasattr(resolved, 'is_swapped'):
+                below_swapped = resolved.is_swapped
 
         # Use resolved segment if available
         if resolved_seg_idx is not None:
@@ -311,13 +359,32 @@ def render_campaigns_resolved(ax, campaign_render_data, resolved_positions):
             if resolved_seg_idx < len(candidates):
                 label_segment = candidates[resolved_seg_idx]
 
+        # Handle swapped labels: if swapped, render on opposite side
+        # Build render_above/render_below based on resolved positions
+        render_above = ""
+        render_below = ""
+
+        # Place label_above text based on whether it was swapped
+        if label_above:
+            if above_swapped:
+                render_below = label_above  # Swapped: render below
+            else:
+                render_above = label_above  # Normal: render above
+
+        # Place label_below text based on whether it was swapped
+        if label_below:
+            if below_swapped:
+                render_above = label_below  # Swapped: render above
+            else:
+                render_below = label_below  # Normal: render below
+
         # Render campaign with resolved label segment
         apply_campaign(
             ax,
             geometry=geometry,
             label_segment=label_segment,
-            label_above=label_above,
-            label_below=label_below,
+            label_above=render_above,
+            label_below=render_below,
             style_key=style_key,
             arrows=arrows,
         )
