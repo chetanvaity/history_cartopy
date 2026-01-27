@@ -21,9 +21,10 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
     Phase 1 of the three-phase flow: Collect -> Resolve -> Render
 
     Returns:
-        (city_candidates, river_data, region_data, city_render_data)
-        - city_candidates: list of LabelCandidate with 8 positions each
-        - river_data: list of dicts with river render info (fixed positions)
+        (city_candidates, river_candidates, river_data, region_data, city_render_data)
+        - city_candidates: list of LabelCandidate with multiple positions each
+        - river_candidates: list of LabelCandidate for auto-placed rivers
+        - river_data: list of dicts with river render info (fixed positions only)
         - region_data: list of dicts with region render info (fixed positions)
         - city_render_data: list of dicts with city render info
     """
@@ -36,6 +37,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
 
     city_candidates = []
     city_render_data = []
+    river_candidates = []
     river_data = []
     region_data = []
 
@@ -187,31 +189,82 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                 group=city_group,
             )
 
-    # 2. Collect Rivers (fixed positions - no candidates)
+    # 2. Collect Rivers
     rivers = labels.get('rivers', [])
-    logger.debug(f"Collecting {len(rivers)} rivers")
+    if rivers:
+        logger.info(f"Collecting {len(rivers)} river(s)")
+    river_style = LABEL_STYLES.get('river', {})
+    river_fontsize = river_style.get('fontsize', 10)
+    river_priority = PRIORITY.get('river', 35)
+    extent = manifest['metadata']['extent']
+
     for item in rivers:
-        lon, lat = item['coords']
-        rotation = item.get('rotation')
-        if rotation is None and data_dir:
-            from history_cartopy.river_alignment import get_river_angle
-            rotation = get_river_angle(item['name'], (lon, lat), data_dir)
+        river_name = item['name']
 
-        river_data.append({
-            'name': item['name'],
-            'coords': (lon, lat),
-            'rotation': rotation or 0,
-        })
+        if 'coords' in item:
+            # Fixed position (existing behavior)
+            lon, lat = item['coords']
+            rotation = item.get('rotation')
+            if rotation is None and data_dir:
+                from history_cartopy.river_alignment import get_river_angle
+                rotation = get_river_angle(river_name, (lon, lat), data_dir)
 
-        river_style = LABEL_STYLES.get('river', {})
-        pm.add_label(
-            f"river_{item['name']}",
-            (lon, lat),
-            item['name'],
-            fontsize=river_style.get('fontsize', 10),
-            priority=PRIORITY.get('river', 40),
-            element_type='river'
-        )
+            river_data.append({
+                'name': river_name,
+                'coords': (lon, lat),
+                'rotation': rotation or 0,
+            })
+
+            pm.add_river_label(
+                f"river_{river_name}",
+                (lon, lat),
+                river_name,
+                fontsize=river_fontsize,
+                rotation=rotation or 0,
+                priority=river_priority,
+            )
+        else:
+            # Auto-placement: generate candidate positions
+            from history_cartopy.river_alignment import sample_river_positions
+
+            hint_coords = item.get('hint_coords')
+            candidates_raw = sample_river_positions(river_name, extent, data_dir)
+
+            if not candidates_raw:
+                logger.warning(f"No candidate positions for river '{river_name}'")
+                continue
+
+            # Sort by hint_coords if provided
+            if hint_coords:
+                hint_lon, hint_lat = hint_coords
+                candidates_raw.sort(
+                    key=lambda c: (c[0] - hint_lon)**2 + (c[1] - hint_lat)**2
+                )
+
+            # Generate LabelCandidate with multiple positions
+            positions = []
+            for lon, lat, angle in candidates_raw:
+                element = pm.add_river_label(
+                    f"river_{river_name}_pos{len(positions)}",
+                    (lon, lat),
+                    river_name,
+                    fontsize=river_fontsize,
+                    rotation=angle,
+                    priority=river_priority,
+                )
+                element.id = f"river_{river_name}"
+                element.rotation = angle
+                pm.remove(f"river_{river_name}_pos{len(positions)}")
+                positions.append(element)
+
+            candidate = LabelCandidate(
+                id=f"river_{river_name}",
+                element_type='river',
+                priority=river_priority,
+                group=None,
+                positions=positions,
+            )
+            river_candidates.append(candidate)
 
     # 3. Collect Regions (fixed positions - no candidates)
     for item in labels.get('regions', []):
@@ -232,7 +285,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             element_type='region'
         )
 
-    return city_candidates, river_data, region_data, city_render_data
+    return city_candidates, river_candidates, river_data, region_data, city_render_data
 
 
 def render_labels_resolved(ax, city_render_data, river_data, region_data,
@@ -344,10 +397,18 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
                        x_offset=x_off, y_offset=y_off,
                        ha='left', va='bottom')  # NE position default
 
-    # Render Rivers (fixed positions)
+    # Render Rivers
+    # First render fixed-position rivers from river_data
     for river in river_data:
         apply_text(ax, river['coords'][0], river['coords'][1],
                    river['name'], 'river', rotation=river['rotation'])
+
+    # Then render auto-placed rivers from resolved_positions
+    for label_id, resolved in resolved_positions.items():
+        if resolved.type == 'river':
+            rotation = getattr(resolved, 'rotation', 0)
+            apply_text(ax, resolved.coords[0], resolved.coords[1],
+                       resolved.text, 'river', rotation=rotation)
 
     # Render Regions (fixed positions)
     for region in region_data:

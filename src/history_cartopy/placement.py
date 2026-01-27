@@ -363,6 +363,74 @@ class PlacementManager:
         logger.debug(f"Added campaign label '{id}': {text}")
         return element
 
+    def add_river_label(
+        self,
+        id: str,
+        coords: tuple,
+        text: str,
+        fontsize: float,
+        rotation: float = 0,
+        priority: int = None,
+        group: str = None,
+    ) -> PlacementElement:
+        """
+        Add a river label element (rotated text with AABB bbox).
+
+        Args:
+            id: Unique identifier
+            coords: (lon, lat) position
+            text: Label text
+            fontsize: Font size in points
+            rotation: Rotation angle in degrees
+            priority: Higher = more important
+            group: Elements in same group don't count as overlapping
+        """
+        if priority is None:
+            priority = PRIORITY.get('river', 35)
+
+        # Text dimensions in points
+        char_width = fontsize * 0.6
+        text_width_pts = len(text) * char_width
+        text_height_pts = fontsize * 1.2
+
+        # Convert to degrees
+        text_width_deg = text_width_pts * self.dpp
+        text_height_deg = text_height_pts * self.dpp
+
+        # Center of rotated text is at coords
+        center_x = coords[0]
+        center_y = coords[1]
+
+        # AABB for rotated rectangle
+        rad = math.radians(rotation)
+        cos_r, sin_r = abs(math.cos(rad)), abs(math.sin(rad))
+        aabb_width = text_width_deg * cos_r + text_height_deg * sin_r
+        aabb_height = text_width_deg * sin_r + text_height_deg * cos_r
+
+        bbox = (
+            center_x - aabb_width / 2,
+            center_y - aabb_height / 2,
+            center_x + aabb_width / 2,
+            center_y + aabb_height / 2,
+        )
+
+        element = PlacementElement(
+            id=id,
+            type='river',
+            coords=coords,
+            offset=(0, 0),
+            bbox=bbox,
+            priority=priority,
+            text=text,
+            group=group,
+        )
+        # Store rotation for rendering
+        element.rotation = rotation
+
+        self.elements[id] = element
+        logger.debug(f"Added river label '{id}': {text} at {coords}")
+        return element
+
     def add_campaign_arrow(
         self,
         id: str,

@@ -39,9 +39,8 @@ labels:
 
   rivers:
     - name: "Brahmaputra"
-      coords: [92.5, 26.63]
-      rotation: 10
-      # rotation auto-calculated from river geometry
+      # coords: [92.5, 26.63]
+      # rotation: 10
 
   regions:
     - name: "ASSAM"

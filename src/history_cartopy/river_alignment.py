@@ -173,3 +173,99 @@ def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
     angle = _calculate_angle_at_point(closest_line, point, search_radius)
     logger.info(f"River '{river_name}' at {coords}: rotation={angle:.1f}°")
     return angle
+
+
+def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, padding=0.5):
+    """
+    Sample candidate positions along a river's geometry within map extents.
+
+    Args:
+        river_name: Name of the river (e.g., "Brahmaputra")
+        extent: [west, east, south, north] map extents in degrees
+        data_dir: Path to data directory containing rivers shapefile
+        sample_distance: Distance between samples in degrees (default 2.0)
+        padding: Padding from map edges in degrees (default 0.5)
+
+    Returns:
+        List of (lon, lat, angle) tuples for candidate positions,
+        sorted by preference (middle of river first).
+        Returns empty list if river not found.
+    """
+    river_data = _load_rivers(data_dir)
+    if river_data is None:
+        return []
+
+    geom = _find_river_geometry(river_name, river_data)
+    if geom is None:
+        logger.warning(f"River '{river_name}' not found for auto-placement")
+        return []
+
+    linestrings = _geometry_to_linestrings(geom)
+    if not linestrings:
+        return []
+
+    west, east, south, north = extent
+    # Padded extents for filtering
+    padded_west = west + padding
+    padded_east = east - padding
+    padded_south = south + padding
+    padded_north = north - padding
+
+    candidates = []
+
+    for line in linestrings:
+        coords = list(line.coords)
+        if len(coords) < 2:
+            continue
+
+        # Calculate total length of this linestring (approximate in degrees)
+        total_length = line.length
+
+        # Sample along the line
+        if total_length < sample_distance:
+            # Short river segment - just use midpoint
+            sample_points = [0.5]
+        else:
+            num_samples = max(2, int(total_length / sample_distance))
+            sample_points = [i / (num_samples - 1) for i in range(num_samples)]
+
+        for fraction in sample_points:
+            # Interpolate point along the line
+            point = line.interpolate(fraction, normalized=True)
+            lon, lat = point.x, point.y
+
+            # Check if within padded extents
+            if not (padded_west <= lon <= padded_east and
+                    padded_south <= lat <= padded_north):
+                continue
+
+            # Calculate angle at this point
+            angle = _calculate_angle_at_point(line, point)
+
+            candidates.append((lon, lat, angle, fraction))
+
+    if not candidates:
+        # Fallback: find closest point on river to map center
+        map_center = Point((west + east) / 2, (south + north) / 2)
+        min_dist = float('inf')
+        fallback = None
+
+        for line in linestrings:
+            nearest_on_line, _ = nearest_points(line, map_center)
+            dist = map_center.distance(nearest_on_line)
+            if dist < min_dist:
+                min_dist = dist
+                angle = _calculate_angle_at_point(line, nearest_on_line)
+                fallback = (nearest_on_line.x, nearest_on_line.y, angle, 0.5)
+
+        if fallback:
+            candidates.append(fallback)
+            logger.debug(f"River '{river_name}': using fallback position near map center")
+
+    # Sort by preference: positions near middle of river (fraction ~0.5) are preferred
+    candidates.sort(key=lambda c: abs(c[3] - 0.5))
+
+    # Return without the fraction
+    result = [(lon, lat, angle) for lon, lat, angle, fraction in candidates]
+    logger.info(f"River '{river_name}': generated {len(result)} candidate positions for auto-placement")
+    return result

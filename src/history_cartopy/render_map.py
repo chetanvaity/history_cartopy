@@ -297,8 +297,12 @@ def main():
     parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')
     parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow'], help='Override background resolution')
     parser.add_argument('--output', help='Override output filename')
+    parser.add_argument('--debug', action='store_true', help='Enable debug logging')
 
     args = parser.parse_args()
+
+    if args.debug:
+        logging.getLogger('history_cartopy').setLevel(logging.DEBUG)
 
     # Handle --init: download backgrounds and vector data, then exit
     if args.init:
@@ -408,7 +412,7 @@ def main():
 
     # Phase 1: COLLECT (cities, rivers, regions, events)
     logger.info("Collecting labels")
-    city_candidates, river_data, region_data, city_render_data = collect_labels(
+    city_candidates, river_candidates, river_data, region_data, city_render_data = collect_labels(
         gazetteer, manifest, pm, data_dir=data_dir
     )
 
@@ -441,7 +445,7 @@ def main():
 
     # Phase 2c: RESOLVE ALL LABELS
     logger.info("Resolving label overlaps")
-    all_candidates = city_candidates + campaign_candidates + event_candidates
+    all_candidates = city_candidates + river_candidates + campaign_candidates + event_candidates
     resolved_positions = pm.resolve_greedy(all_candidates)
     logger.info(f"Resolved {len(resolved_positions)} label positions")
 

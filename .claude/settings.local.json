@@ -16,7 +16,11 @@
       "Bash(source ~/hcvenv/bin/activate)",
       "Bash(PYTHONPATH=src python:*)",
       "Bash(python -m py_compile:*)",
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Bash(xargs cat:*)",
+      "Bash(pytest:*)",
+      "Bash(history-map:*)",
+      "Bash(python:*)"
     ]
   }
 }
