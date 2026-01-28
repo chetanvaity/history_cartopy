@@ -89,12 +89,35 @@ labels:
   # ---------------------------------------------------------------------------
   # RIVERS
   # ---------------------------------------------------------------------------
-  # Rivers use direct coordinates (not gazetteer)
+  # River labels with automatic alignment to river direction.
+  # Uses Natural Earth river data for rotation and positioning.
+  #
+  # Two modes:
+  #   1. Fixed position: specify coords (and optionally rotation)
+  #   2. Auto-placement: omit coords, use hint_coords to guide placement
   #
   rivers:
+    # Fixed position with manual rotation
     - name: "River Name"
       coords: [74.5, 22.0]             # [longitude, latitude]
       rotation: 15                     # Degrees, counter-clockwise
+
+    # Fixed position with auto-rotation (from Natural Earth data)
+    - name: "Narmada"
+      coords: [75.0, 22.5]             # Position specified
+      # rotation auto-calculated from river geometry
+
+    # Auto-placement: position AND rotation determined automatically
+    # Searches along river within map extent for best placement
+    - name: "Brahmaputra"
+      hint_coords: [92, 26.5]          # Guides search area (+/- 1/4 map extent)
+      # Both position and rotation auto-calculated
+
+    # Gap: perpendicular offset from river line (in points)
+    # Keeps label from obscuring the river
+    - name: "Ganges"
+      hint_coords: [85, 25]
+      gap: 12                          # Offset in points (default: 8)
 
   # ---------------------------------------------------------------------------
   # REGIONS

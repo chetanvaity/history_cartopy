@@ -10,6 +10,7 @@ metadata:
   output: "mir-jumla-assam-1662.png"
   dimensions: [3600, 2400]
   iconset: "iconsets/bwicons"
+  graticule: true
 
 labels:
   cities:
@@ -39,6 +40,7 @@ labels:
 
   rivers:
     - name: "Brahmaputra"
+      hint_coords: [91.5, 26.5]
       # coords: [92.5, 26.63]
       # rotation: 10
 

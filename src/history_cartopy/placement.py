@@ -372,6 +372,8 @@ class PlacementManager:
         rotation: float = 0,
         priority: int = None,
         group: str = None,
+        normal: tuple = None,
+        gap_pts: float = 0,
     ) -> PlacementElement:
         """
         Add a river label element (rotated text with AABB bbox).
@@ -384,9 +386,19 @@ class PlacementManager:
             rotation: Rotation angle in degrees
             priority: Higher = more important
             group: Elements in same group don't count as overlapping
+            normal: (nx, ny) unit normal vector perpendicular to river
+            gap_pts: Offset distance in points along normal direction
         """
         if priority is None:
             priority = PRIORITY.get('river', 35)
+
+        # Calculate offset from normal and gap
+        if normal and gap_pts:
+            gap_deg = gap_pts * self.dpp
+            x_offset_deg = normal[0] * gap_deg
+            y_offset_deg = normal[1] * gap_deg
+        else:
+            x_offset_deg, y_offset_deg = 0, 0
 
         # Text dimensions in points
         char_width = fontsize * 0.6
@@ -397,9 +409,9 @@ class PlacementManager:
         text_width_deg = text_width_pts * self.dpp
         text_height_deg = text_height_pts * self.dpp
 
-        # Center of rotated text is at coords
-        center_x = coords[0]
-        center_y = coords[1]
+        # Center of rotated text is at coords + offset
+        center_x = coords[0] + x_offset_deg
+        center_y = coords[1] + y_offset_deg
 
         # AABB for rotated rectangle
         rad = math.radians(rotation)
@@ -418,17 +430,18 @@ class PlacementManager:
             id=id,
             type='river',
             coords=coords,
-            offset=(0, 0),
+            offset=(x_offset_deg, y_offset_deg),
             bbox=bbox,
             priority=priority,
             text=text,
             group=group,
         )
-        # Store rotation for rendering
+        # Store rotation and normal for rendering
         element.rotation = rotation
+        element.normal = normal
 
         self.elements[id] = element
-        logger.debug(f"Added river label '{id}': {text} at {coords}")
+        logger.debug(f"Added river label '{id}': {text} at {coords}, gap={gap_pts}pts")
         return element
 
     def add_campaign_arrow(

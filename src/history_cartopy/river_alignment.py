@@ -17,6 +17,23 @@ logger = logging.getLogger('history_cartopy.river_alignment')
 _river_cache = None
 
 
+def angle_to_normal(angle_deg):
+    """
+    Convert river angle to perpendicular unit normal vector.
+
+    The normal points "above" the river (positive y direction when angle=0).
+
+    Args:
+        angle_deg: River angle in degrees (0 = horizontal, positive = counter-clockwise)
+
+    Returns:
+        (nx, ny) unit normal vector perpendicular to the river direction
+    """
+    # Normal is 90° rotated from tangent direction
+    rad = math.radians(angle_deg + 90)
+    return (math.cos(rad), math.sin(rad))
+
+
 def _get_rivers_path(data_dir):
     """Get path to the Natural Earth rivers shapefile."""
     return os.path.join(data_dir, 'rivers', 'ne_10m_rivers_lake_centerlines.shp')
@@ -175,7 +192,7 @@ def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
     return angle
 
 
-def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, padding=0.5):
+def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coords=None):
     """
     Sample candidate positions along a river's geometry within map extents.
 
@@ -183,12 +200,15 @@ def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, pa
         river_name: Name of the river (e.g., "Brahmaputra")
         extent: [west, east, south, north] map extents in degrees
         data_dir: Path to data directory containing rivers shapefile
-        sample_distance: Distance between samples in degrees (default 2.0)
         padding: Padding from map edges in degrees (default 0.5)
+        hint_coords: Optional (lon, lat) tuple to guide candidate generation.
+                     When provided, candidates are only generated within 1/4
+                     of the map extent around the hint position.
 
     Returns:
-        List of (lon, lat, angle) tuples for candidate positions,
-        sorted by preference (middle of river first).
+        List of (lon, lat, angle, normal) tuples for candidate positions,
+        where normal is a (nx, ny) unit vector perpendicular to river direction.
+        Sorted by preference (closest to hint or middle of river first).
         Returns empty list if river not found.
     """
     river_data = _load_rivers(data_dir)
@@ -205,21 +225,56 @@ def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, pa
         return []
 
     west, east, south, north = extent
-    # Padded extents for filtering
-    padded_west = west + padding
-    padded_east = east - padding
-    padded_south = south + padding
-    padded_north = north - padding
+    map_width = east - west
+    map_height = north - south
+
+    # Determine search bounds
+    if hint_coords:
+        # Constrain search to ±1/4 map extent around hint
+        hint_lon, hint_lat = hint_coords
+        half_search_width = map_width / 4
+        half_search_height = map_height / 4
+
+        search_west = max(west + padding, hint_lon - half_search_width)
+        search_east = min(east - padding, hint_lon + half_search_width)
+        search_south = max(south + padding, hint_lat - half_search_height)
+        search_north = min(north - padding, hint_lat + half_search_height)
+
+        logger.info(f"River '{river_name}': hint_coords={hint_coords}, "
+                    f"search bounds=[{search_west:.2f}, {search_east:.2f}, {search_south:.2f}, {search_north:.2f}]")
+    else:
+        # Use full map extent with padding
+        search_west = west + padding
+        search_east = east - padding
+        search_south = south + padding
+        search_north = north - padding
+
+    # Sample distance based on search area - aim for ~10-20 samples across the search region
+    search_width = search_east - search_west
+    search_height = search_north - search_south
+    sample_distance = min(search_width, search_height) / 10
+
+    logger.info(f"River '{river_name}': sample_distance={sample_distance:.3f} "
+                f"(search area {search_width:.1f}° x {search_height:.1f}°)")
 
     candidates = []
+    total_samples = 0
+    filtered_out = 0
 
-    for line in linestrings:
+    logger.info(f"River '{river_name}': processing {len(linestrings)} linestring(s)")
+
+    for idx, line in enumerate(linestrings):
         coords = list(line.coords)
         if len(coords) < 2:
             continue
 
         # Calculate total length of this linestring (approximate in degrees)
         total_length = line.length
+
+        # Get bounding box of this linestring
+        minx, miny, maxx, maxy = line.bounds
+        logger.info(f"  Linestring {idx}: length={total_length:.2f}, "
+                    f"bounds=lon[{minx:.2f}, {maxx:.2f}] lat[{miny:.2f}, {maxy:.2f}]")
 
         # Sample along the line
         if total_length < sample_distance:
@@ -229,20 +284,35 @@ def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, pa
             num_samples = max(2, int(total_length / sample_distance))
             sample_points = [i / (num_samples - 1) for i in range(num_samples)]
 
+        line_candidates = 0
+        line_filtered = 0
+
         for fraction in sample_points:
+            total_samples += 1
             # Interpolate point along the line
             point = line.interpolate(fraction, normalized=True)
             lon, lat = point.x, point.y
 
-            # Check if within padded extents
-            if not (padded_west <= lon <= padded_east and
-                    padded_south <= lat <= padded_north):
+            # Check if within search bounds
+            if not (search_west <= lon <= search_east and
+                    search_south <= lat <= search_north):
+                filtered_out += 1
+                line_filtered += 1
                 continue
 
             # Calculate angle at this point
             angle = _calculate_angle_at_point(line, point)
+            normal = angle_to_normal(angle)
 
-            candidates.append((lon, lat, angle, fraction))
+            candidates.append((lon, lat, angle, normal, fraction))
+            line_candidates += 1
+
+        if line_candidates > 0 or line_filtered > 0:
+            logger.debug(f"  Linestring {idx}: {len(sample_points)} samples, "
+                         f"{line_candidates} in bounds, {line_filtered} filtered out")
+
+    logger.info(f"River '{river_name}': {total_samples} total samples, "
+                f"{len(candidates)} in bounds, {filtered_out} filtered out")
 
     if not candidates:
         # Fallback: find closest point on river to map center
@@ -256,16 +326,23 @@ def sample_river_positions(river_name, extent, data_dir, sample_distance=2.0, pa
             if dist < min_dist:
                 min_dist = dist
                 angle = _calculate_angle_at_point(line, nearest_on_line)
-                fallback = (nearest_on_line.x, nearest_on_line.y, angle, 0.5)
+                normal = angle_to_normal(angle)
+                fallback = (nearest_on_line.x, nearest_on_line.y, angle, normal, 0.5)
 
         if fallback:
             candidates.append(fallback)
             logger.debug(f"River '{river_name}': using fallback position near map center")
 
-    # Sort by preference: positions near middle of river (fraction ~0.5) are preferred
-    candidates.sort(key=lambda c: abs(c[3] - 0.5))
+    # Sort by preference
+    if hint_coords:
+        # When hint provided, sort by distance to hint
+        hint_lon, hint_lat = hint_coords
+        candidates.sort(key=lambda c: (c[0] - hint_lon)**2 + (c[1] - hint_lat)**2)
+    else:
+        # Otherwise prefer positions near middle of river (fraction ~0.5)
+        candidates.sort(key=lambda c: abs(c[4] - 0.5))  # fraction is at index 4
 
-    # Return without the fraction
-    result = [(lon, lat, angle) for lon, lat, angle, fraction in candidates]
+    # Return without the fraction (keep lon, lat, angle, normal)
+    result = [(lon, lat, angle, normal) for lon, lat, angle, normal, fraction in candidates]
     logger.info(f"River '{river_name}': generated {len(result)} candidate positions for auto-placement")
     return result
