@@ -298,6 +298,7 @@ def main():
     parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow'], help='Override background resolution')
     parser.add_argument('--output', help='Override output filename')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
+    parser.add_argument('--debug-river-candidates', action='store_true', help='Render all river label candidates')
 
     args = parser.parse_args()
 
@@ -399,6 +400,7 @@ def main():
 
     # Create placement manager for overlap detection
     dpp = get_deg_per_pt(ax)
+    logger.info(f"Degrees per point (dpp) = {dpp:.6f}")
     pm = PlacementManager(dpp)
 
     # =========================================================================
@@ -452,7 +454,9 @@ def main():
     # Phase 3: RENDER
     logger.info("Rendering labels")
     render_labels_resolved(ax, city_render_data, river_data, region_data,
-                           resolved_positions, gazetteer, manifest, data_dir=data_dir)
+                           resolved_positions, gazetteer, manifest, data_dir=data_dir,
+                           river_candidates=river_candidates,
+                           debug_river_candidates=args.debug_river_candidates)
 
     logger.info("Rendering campaigns")
     render_campaigns_resolved(ax, campaign_render_data, resolved_positions)

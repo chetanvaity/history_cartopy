@@ -40,8 +40,8 @@ labels:
 
   rivers:
     - name: "Brahmaputra"
-      hint_coords: [91.5, 26.5]
-      # coords: [92.5, 26.63]
+      #hint_coords: [91.5, 26.2]
+      # coords: [92.5, 26.5]
       # rotation: 10
 
   regions:

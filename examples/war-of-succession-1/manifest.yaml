@@ -8,6 +8,9 @@ metadata:
   output: "advance-from-deccan-1658.png"
   dimensions: [3600, 2400]
   iconset: "iconsets/bwicons"
+  graticule: 
+    labels: true
+    lines: true
 
 labels:
   cities:
@@ -29,11 +32,12 @@ labels:
 
   rivers:
     - name: "Narmada"
-      coords: [74.45, 22.14]
-      rotation: 10
-    - name: "Tapti"
-      coords: [75.50, 21.13]
-      rotation: 0
+      #coords: [74.45, 22.14]
+      #rotation: 10
+    - name: "Tapi"
+      #coords: [75.50, 21.13]
+      #rotation: 0
+    - name: "Chambal"
 
 campaigns:
   # Aurangzeb's segmented march

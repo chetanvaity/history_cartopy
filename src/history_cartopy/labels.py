@@ -14,6 +14,22 @@ from history_cartopy.placement import LabelCandidate, PRIORITY
 logger = logging.getLogger('history_cartopy.labels')
 
 
+def _bbox_within_extent(bbox, extent):
+    """
+    Check if a bounding box is fully within map extents.
+
+    Args:
+        bbox: (x1, y1, x2, y2) bounding box in degrees
+        extent: [west, east, south, north] map extents
+
+    Returns:
+        True if bbox is fully within extent
+    """
+    west, east, south, north = extent
+    x1, y1, x2, y2 = bbox
+    return x1 >= west and x2 <= east and y1 >= south and y2 <= north
+
+
 def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
     """
     Collect all label data without rendering.
@@ -248,7 +264,9 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
 
             # Generate LabelCandidate with multiple positions
             positions = []
-            for lon, lat, angle, normal in candidates_raw:
+            filtered_out = 0
+            logger.info(f"River '{river_name}': extent={extent}")
+            for idx, (lon, lat, angle, normal) in enumerate(candidates_raw):
                 element = pm.add_river_label(
                     f"river_{river_name}_pos{len(positions)}",
                     (lon, lat),
@@ -259,12 +277,27 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                     normal=normal,
                     gap_pts=gap_pts,
                 )
+                logger.info(f"  Candidate {idx}: anchor=({lon:.2f}, {lat:.2f}), "
+                           f"bbox=({element.bbox[0]:.2f}, {element.bbox[1]:.2f}, {element.bbox[2]:.2f}, {element.bbox[3]:.2f})")
+                # Filter out candidates whose bounding box extends outside map extents
+                if not _bbox_within_extent(element.bbox, extent):
+                    pm.remove(f"river_{river_name}_pos{len(positions)}")
+                    filtered_out += 1
+                    continue
+
                 element.id = f"river_{river_name}"
                 element.rotation = angle
                 element.normal = normal
                 element.gap_pts = gap_pts
                 pm.remove(f"river_{river_name}_pos{len(positions)}")
                 positions.append(element)
+
+            if filtered_out > 0:
+                logger.info(f"River '{river_name}': filtered {filtered_out} candidates outside map extents")
+
+            if not positions:
+                logger.warning(f"No valid candidate positions for river '{river_name}' (all outside map extents)")
+                continue
 
             candidate = LabelCandidate(
                 id=f"river_{river_name}",
@@ -298,7 +331,8 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
 
 
 def render_labels_resolved(ax, city_render_data, river_data, region_data,
-                           resolved_positions, gazetteer, manifest, data_dir=None):
+                           resolved_positions, gazetteer, manifest, data_dir=None,
+                           river_candidates=None, debug_river_candidates=False):
     """
     Render labels using pre-resolved positions.
 
@@ -312,6 +346,8 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
         resolved_positions: dict from resolve_greedy() mapping label IDs to PlacementElements
         manifest: the manifest for iconset lookup
         data_dir: data directory path
+        river_candidates: list of LabelCandidate for rivers (for debug rendering)
+        debug_river_candidates: if True, render all river candidates instead of resolved
     """
     from history_cartopy.styles import get_deg_per_pt
 
@@ -418,17 +454,31 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
                    river['name'], 'river', rotation=river['rotation'],
                    x_offset=x_offset_pts, y_offset=y_offset_pts)
 
-    # Then render auto-placed rivers from resolved_positions
-    for label_id, resolved in resolved_positions.items():
-        if resolved.type == 'river':
-            rotation = getattr(resolved, 'rotation', 0)
-            # Convert offset from degrees back to points
-            dpp = get_deg_per_pt(ax)
-            x_offset_pts = resolved.offset[0] / dpp if dpp else 0
-            y_offset_pts = resolved.offset[1] / dpp if dpp else 0
-            apply_text(ax, resolved.coords[0], resolved.coords[1],
-                       resolved.text, 'river', rotation=rotation,
-                       x_offset=x_offset_pts, y_offset=y_offset_pts)
+    # Then render auto-placed rivers
+    dpp = get_deg_per_pt(ax)
+    if debug_river_candidates and river_candidates:
+        # Debug mode: render ALL candidate positions
+        for candidate in river_candidates:
+            for idx, pos in enumerate(candidate.positions):
+                rotation = getattr(pos, 'rotation', 0)
+                x_offset_pts = pos.offset[0] / dpp if dpp else 0
+                y_offset_pts = pos.offset[1] / dpp if dpp else 0
+                # Use a lighter color for non-first candidates
+                alpha = 1.0 if idx == 0 else 0.4
+                apply_text(ax, pos.coords[0], pos.coords[1],
+                           pos.text, 'river', rotation=rotation,
+                           x_offset=x_offset_pts, y_offset=y_offset_pts,
+                           alpha=alpha)
+    else:
+        # Normal mode: render only resolved positions
+        for label_id, resolved in resolved_positions.items():
+            if resolved.type == 'river':
+                rotation = getattr(resolved, 'rotation', 0)
+                x_offset_pts = resolved.offset[0] / dpp if dpp else 0
+                y_offset_pts = resolved.offset[1] / dpp if dpp else 0
+                apply_text(ax, resolved.coords[0], resolved.coords[1],
+                           resolved.text, 'river', rotation=rotation,
+                           x_offset=x_offset_pts, y_offset=y_offset_pts)
 
     # Render Regions (fixed positions)
     for region in region_data:
