@@ -20,7 +20,8 @@
       "Bash(xargs cat:*)",
       "Bash(pytest:*)",
       "Bash(history-map:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ls:*)"
     ]
   }
 }

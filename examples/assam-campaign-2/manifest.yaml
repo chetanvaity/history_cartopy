@@ -48,19 +48,12 @@ campaigns:
     label_below: "Aug 17"
 
 events:
-  - text: "Mughal HQ besieged"
+  - text: "Mughal HQ besieged (May-Oct)"
     location: "Garhgaon"
-    date: "May-Oct"
-    label_angle: 180
 
-  - text: "Ahom assault repelled"
+  - text: "Ahom assault repelled (Jul 12)"
     location: "Garhgaon"
-    date: "Jul 12"
     icon: "battle"
-    icon_centered: true
-    label_angle: 90
 
-  - text: "Epidemic"
+  - text: "Epidemic (Aug)"
     location: "Mathurapur"
-    date: "Aug"
-    label_angle: 0

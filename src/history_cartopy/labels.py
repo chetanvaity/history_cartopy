@@ -168,6 +168,8 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                         priority=label_priority,
                         element_type='city_label',
                         group=city_group,
+                        ha=ha,
+                        va=va,
                     )
                     element.id = f"city_label_{name}"
                     # Store alignment info for rendering

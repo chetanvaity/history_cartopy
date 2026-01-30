@@ -5,7 +5,7 @@ metadata:
   extent: [71, 78, 18.5, 27]
   background: "natural_earth"
   resolution: "high-yellow"
-  output: "advance-from-deccan-1658.png"
+  output: "war-of-succession-1.png"
   dimensions: [3600, 2400]
   iconset: "iconsets/bwicons"
   graticule: 
@@ -32,11 +32,7 @@ labels:
 
   rivers:
     - name: "Narmada"
-      #coords: [74.45, 22.14]
-      #rotation: 10
     - name: "Tapi"
-      #coords: [75.50, 21.13]
-      #rotation: 0
     - name: "Chambal"
 
 campaigns:
@@ -66,12 +62,8 @@ campaigns:
     label_above: "Jaswant Singh"
 
 events:
-  - text: "Crossing"
-    date: "Apr 3"
+  - text: "Crossing (Apr 3)"
     coords: [76.0, 22.2]
-  - text: "Dharmat"
+  - text: "Dharmat (Apr 15)"
     location: "Dharmat"
-    date: "Apr 15"
     icon: "battle"
-    icon_centered: true
-    label_angle: 270

@@ -175,39 +175,28 @@ territories:
 # =============================================================================
 # EVENTS (optional)
 # =============================================================================
-# Standalone labels for battles, crossings, treaties, etc.
-# Renders as: [icon] + text (line 1) + date (line 2)
+# Standalone markers for battles, crossings, treaties, etc.
+#
+# Events behave like cities:
+# - An imaginary anchor point at the location
+# - Text label with 8 candidate positions (Imhof model) around the anchor
+# - Optional icon centered at the location
 #
 # Text styling: sans-serif font, maroon color (distinct from city labels)
 #
 events:
-  # Minimal event (no icon, centered text)
+  # Minimal event (text with automatic placement)
   - text: "Event Description"
-    date: "Date"
     coords: [75.0, 22.0]               # Direct coordinates
 
   # Event at a gazetteer location
   - text: "Battle Name"
     location: "CityName"               # Looked up in gazetteer
-    date: "Date"
 
-  # Event with icon
+  # Event with icon (icon centered at location, text placed around it)
   - text: "Battle Name"
     location: "CityName"
-    date: "Date"
-    icon: "battle"                     # Icon from iconset
-
-    # label_angle: where to place text relative to icon
-    #   0   = North (above)
-    #   90  = East (right) - default
-    #   180 = South (below)
-    #   270 = West (left)
-    label_angle: 90
-
-    # icon_centered: how icon aligns to the coordinate
-    #   false (default) = icon's bottom-center at coordinate
-    #   true            = icon's center at coordinate
-    icon_centered: false
+    icon: "battle"                     # Icon from iconset (centered at location)
 
     rotation: 0                        # Rotate text (optional)
 

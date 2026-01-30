@@ -142,6 +142,8 @@ class PlacementManager:
         priority: int = 50,
         element_type: str = 'city_label',
         group: str = None,
+        ha: str = 'left',
+        va: str = 'center',
     ) -> PlacementElement:
         """
         Add a label element.
@@ -156,6 +158,8 @@ class PlacementManager:
             priority: Higher = more important
             element_type: Type of element for categorization
             group: Group ID - elements in same group don't count as overlapping
+            ha: Horizontal alignment ('left', 'center', 'right')
+            va: Vertical alignment ('top', 'center', 'bottom')
         """
         # Approximate text dimensions in points
         char_width = fontsize * 0.6  # Average character width
@@ -168,16 +172,34 @@ class PlacementManager:
         text_width_deg = text_width_pts * self.dpp
         text_height_deg = text_height_pts * self.dpp
 
-        # Calculate bbox (label positioned with left edge at offset point, vertically centered)
-        center_x = coords[0] + x_offset_deg + text_width_deg / 2
-        center_y = coords[1] + y_offset_deg
+        # Anchor point is at coords + offset
+        anchor_x = coords[0] + x_offset_deg
+        anchor_y = coords[1] + y_offset_deg
 
-        bbox = (
-            center_x - text_width_deg / 2,  # x1
-            center_y - text_height_deg / 2,  # y1
-            center_x + text_width_deg / 2,  # x2
-            center_y + text_height_deg / 2,  # y2
-        )
+        # Calculate bbox based on text alignment
+        # Horizontal: anchor point is at left/center/right of text
+        if ha == 'left':
+            x1 = anchor_x
+            x2 = anchor_x + text_width_deg
+        elif ha == 'right':
+            x1 = anchor_x - text_width_deg
+            x2 = anchor_x
+        else:  # center
+            x1 = anchor_x - text_width_deg / 2
+            x2 = anchor_x + text_width_deg / 2
+
+        # Vertical: anchor point is at top/center/bottom of text
+        if va == 'bottom':
+            y1 = anchor_y
+            y2 = anchor_y + text_height_deg
+        elif va == 'top':
+            y1 = anchor_y - text_height_deg
+            y2 = anchor_y
+        else:  # center
+            y1 = anchor_y - text_height_deg / 2
+            y2 = anchor_y + text_height_deg / 2
+
+        bbox = (x1, y1, x2, y2)
 
         element = PlacementElement(
             id=id,
@@ -623,9 +645,14 @@ class PlacementManager:
         resolved = {}
         unresolved = []
 
+        logger.debug(f"Resolving {len(candidates)} candidates, checking against {len(self.elements)} fixed elements")
+
         for candidate in sorted_candidates:
             placed = False
             rejection_reasons = []  # Track why each position was rejected
+
+            logger.debug(f"Resolving '{candidate.id}' (priority={candidate.priority}, "
+                        f"{len(candidate.positions)} positions)")
 
             for idx, position in enumerate(candidate.positions):
                 # Check against already-resolved elements
@@ -636,12 +663,15 @@ class PlacementManager:
                     candidate.resolved_idx = idx
                     resolved[candidate.id] = position
                     placed = True
-                    logger.debug(f"Placed '{candidate.id}' at position {idx}")
+                    logger.debug(f"  -> Placed at position {idx} (no overlaps)")
                     break
                 else:
                     # Track what caused the rejection
-                    overlap_ids = [o.id for o in overlaps]
-                    rejection_reasons.append((idx, overlap_ids))
+                    overlap_details = [(o.id, o.type, o.text) for o in overlaps]
+                    rejection_reasons.append((idx, position.bbox, overlap_details))
+                    logger.debug(f"  Position {idx} bbox=({position.bbox[0]:.3f}, {position.bbox[1]:.3f}, "
+                                f"{position.bbox[2]:.3f}, {position.bbox[3]:.3f}) overlaps with: "
+                                f"{[f'{o[1]}:{o[2]}' for o in overlap_details]}")
 
             if not placed:
                 # All positions overlap - use first (preferred) and log warning
@@ -650,10 +680,11 @@ class PlacementManager:
                 candidate.resolved_idx = 0
                 resolved[candidate.id] = position
                 unresolved.append(candidate)
-                logger.warning(f"Could not place '{candidate.id}' without overlap")
+                logger.warning(f"Could not place '{candidate.id}' without overlap - using position 0")
                 # Log detailed rejection reasons
-                for pos_idx, overlap_ids in rejection_reasons:
-                    logger.debug(f"  Position {pos_idx} rejected due to: {overlap_ids}")
+                for pos_idx, bbox, overlap_details in rejection_reasons:
+                    logger.debug(f"  Position {pos_idx} rejected: bbox=({bbox[0]:.3f}, {bbox[1]:.3f}, "
+                                f"{bbox[2]:.3f}, {bbox[3]:.3f}), overlaps: {overlap_details}")
 
         if unresolved:
             logger.info(f"Greedy resolution: {len(resolved)} placed, {len(unresolved)} with overlaps")

@@ -36,6 +36,7 @@ Thumbs.db
 # Generated map outputs (keep examples, ignore user-generated)
 *.png
 !data/**/*.png
+!war-of-succession-1.png
 !sack-of-hyderabad-1655.png
 !advance-from-deccan-1658.png
 !tactical-agra-1658.png

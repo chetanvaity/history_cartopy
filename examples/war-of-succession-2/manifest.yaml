@@ -96,9 +96,6 @@ campaigns:
 # EVENTS
 # =============================================================================
 events:
-  - text: "Battle of Samugarh"
+  - text: "Battle of Samugarh (May 29, 1658)"
     coords: [78.1, 27.12]
-    date: "May 29, 1658"
     icon: "battle"
-    label_angle: 90
-    icon_centered: true

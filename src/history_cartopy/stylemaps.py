@@ -9,7 +9,6 @@ LABEL_STYLES = {
     'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
     'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
     'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
-    'event_date':  {'fontsize': 8, 'style': 'italic', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
 }
 
 # Event configuration
