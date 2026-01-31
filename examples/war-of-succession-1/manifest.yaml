@@ -63,7 +63,7 @@ campaigns:
 
 events:
   - text: "Crossing (Apr 3)"
-    coords: [76.0, 22.2]
+    coords: [75.5, 22.2]
   - text: "Dharmat (Apr 15)"
     location: "Dharmat"
     icon: "battle"
