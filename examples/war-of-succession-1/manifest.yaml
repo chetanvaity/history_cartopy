@@ -4,10 +4,11 @@ metadata:
   year: 1658
   extent: [71, 78, 18.5, 27]
   background: "natural_earth"
-  resolution: "high-yellow"
+  resolution: "high"
   output: "war-of-succession-1.png"
   dimensions: [3600, 2400]
   iconset: "iconsets/bwicons"
+  scale_bar: true
   graticule: 
     labels: true
     lines: true
@@ -39,31 +40,31 @@ campaigns:
   # Aurangzeb's segmented march
   - name: "Aurangzeb Phase 1"
     path: ["Aurangabad", "Burhanpur"]
-    style: "boring"
+    style: "invasion"
     label_above: "Aurangzeb"
     label_below: "Feb 5"
   - name: "Aurangzeb Phase 2"
     path: ["Burhanpur", "Akbarpur"]
-    style: "boring"
+    style: "invasion"
   - name: "Aurangzeb Phase 3"
     path: ["Akbarpur", "Dipalpur"]
-    style: "boring"
+    style: "invasion"
 
   # Murad's segmented march
   - name: "Murad Phase 1"
     path: ["Ahmedabad", "Dipalpur"]
-    style: "power"
+    style: "invasion-orange"
     label_above: "Murad"
 
   # Imperial Defense
   - name: "Imperial Force"
     path: ["Jodhpur", "Ujjain"]
-    style: "boring"
+    style: "invasion-black"
     label_above: "Jaswant Singh"
 
 events:
   - text: "Crossing (Apr 3)"
-    coords: [75.5, 22.2]
+    coords: [75.5, 21.9]
   - text: "Dharmat (Apr 15)"
     location: "Dharmat"
     icon: "battle"

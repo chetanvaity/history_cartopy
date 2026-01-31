@@ -62,6 +62,22 @@ CAMPAIGN_STYLES = {
         'alpha': 0.5,
         'type': 'power'
     },
+    'invasion-orange': {
+        'color': '#E97451',      # Orange
+        'linewidth': 2.5,
+        'linestyle': '-',        # Solid line for main force
+        'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
+        'alpha': 0.5,
+        'type': 'power'
+    },
+    'invasion-black': {
+        'color': '#000000',      # Black
+        'linewidth': 2.5,
+        'linestyle': '-',        # Solid line for main force
+        'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
+        'alpha': 0.5,
+        'type': 'power'
+    },
     'boring': {
         'color': '#d2691e',      # Chocolate/Orange
         'linewidth': 1.5,
