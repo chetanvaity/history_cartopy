@@ -1,14 +1,18 @@
-# The Deccan in 1655
+# During second viceroyalty of Aurangzeb, in 1656, Golconda was invaded - with hsi son Muhammad Sultan.
+# Sack of Hyderabad - Jan 1656
+# Siege of Golconda Feb/March
+
 metadata:
-  title: "Golconda"
+  title: "Sack of Hyderabad - Jan 1656"
   year: 1655
   extent: [70, 85, 13, 23] # [MinLon, MaxLon, MinLat, MaxLat]
   background: "natural_earth"
-  resolution: "dev"  # [dev, low, med-yellow, high-yellow] Use dev for quick testing (coastlines only), 
-  output: "sack-of-hyderabad-1655.png" # Output filename
+  resolution: "high"  # [dev, low, med-yellow, high-yellow] Use dev for quick testing (coastlines only), 
+  output: "sack-of-hyderabad-1656.png" # Output filename
   dimensions: [3600, 2400]  # pixels (3:2 ratio, divisible by 300 DPI and 200 tile size)
   border_style: "test"  # Use "test" border tiles
-  iconset: "iconsets/bwicons"
+  graticule: true
+  scale_bar: true
 
 labels:
   cities:
@@ -30,19 +34,17 @@ labels:
   # Features that require manual placement/rotation per map
   rivers:
     - name: "Krishna"
-      coords: [79.2, 16.6]
-      rotation: 10
-    - name: "Godavari"
-      coords: [77.6, 18.85]
-      rotation: 10
+      #coords: [79.2, 16.6]
+      #rotation: 10
+    - name: "Godawari"
+      #coords: [77.6, 18.85]
+      #rotation: 10
 
   regions:
     - name: "Deccan"
       coords: [77.0, 20.0]
       spacing: 2
 
-# These are essentially arrows showing troop movements
-# Styles are "invasion, power, boring"
 campaigns:
   - name: "Muhammad Sultan"
     path: ["Nanded", "Hyderabad"]
@@ -53,7 +55,7 @@ campaigns:
   - name: "Aurangzeb"
     path: ["Aurangabad", "Hyderabad"]
     style: "boring"
-    rad: 0.2
+    rad: -0.2
     label_above: "Aurangzeb"
     label_below: "Feb 1666"
 

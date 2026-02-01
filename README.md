@@ -5,14 +5,15 @@ See [motivation](motivation.md).
 
 ## Example Maps
 
-| Sack of Hyderabad (1655) | War of succession-1 (1658) | Tactical Agra (1658) |
+| Sack of Hyderabad (1656) | War of succession-1 (1658) | Tactical Agra (1658) |
 |:------------------------:|:--------------------------:|:--------------------:|
-| ![Sack of Hyderabad](sack-of-hyderabad-1655.png) | ![War of Succession 1](war-of-succession-1.png) | ![Tactical Agra](tactical-agra-1658.png) |
+| ![Sack of Hyderabad](sack-of-hyderabad-1656.png) | ![War of Succession 1](war-of-succession-1.png) | ![Tactical Agra](tactical-agra-1658.png) |
 
 ## Features
 
 - Declarative YAML-based map configuration
 - Support for territories (geoJSON), cities, campaigns, and labels
+- Automatic river label placement along natural river paths
 - Tiled PNG border system with customizable styles
 
 ## Installation

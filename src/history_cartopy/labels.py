@@ -76,7 +76,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
         anchor = AnchorCircle(city_level=level)
 
         icon_setting = item.get('icon', None)
-        has_icon = icon_setting is not False and iconset_path is not None
+        has_icon = icon_setting and iconset_path is not None
 
         if has_icon:
             icon_idx = anchor.add_attachment('icon', preferred_angle=0)

@@ -40,7 +40,7 @@ history-map <manifest.yaml> --res dev # Quick dev preview
 | Module | Purpose |
 |--------|---------|
 | `render_map.py` | Main entry point, 3-phase pipeline |
-| `labels.py` | City/river/region label handling |
+| `labels.py` | City/river/region label handling (auto-placement for rivers) |
 | `campaigns.py` | Military movement arrows |
 | `placement.py` | Overlap resolution (greedy algorithm) |
 | `anchor.py` | 8-position Imhof model around city dots |
