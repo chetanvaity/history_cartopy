@@ -36,6 +36,26 @@ def angle_to_normal(angle_deg):
     return (math.cos(rad), math.sin(rad))
 
 
+def _angle_penalty(angle):
+    """
+    Compute penalty for angles away from horizontal.
+
+    Horizontal labels (angle near 0°) are easiest to read.
+    Angles within ±30° of horizontal have no penalty.
+    Penalty increases linearly as angle approaches ±90°.
+
+    Args:
+        angle: Angle in degrees, normalized to [-90, +90]
+
+    Returns:
+        Penalty value: 0 for angles in [-30, +30], up to 60 for ±90°
+    """
+    abs_angle = abs(angle)
+    if abs_angle <= 30:
+        return 0
+    return abs_angle - 30
+
+
 def _get_rivers_path(data_dir):
     """Get path to the Natural Earth rivers shapefile."""
     return os.path.join(data_dir, 'rivers', 'ne_10m_rivers_lake_centerlines.shp')
@@ -132,56 +152,67 @@ def _geometry_to_linestrings(geom):
         return []
 
 
-def _calculate_angle_at_point(line, point, search_radius=0.5):
+def _normalize_angle(angle):
+    """Normalize angle to [-90, +90] so text is always readable."""
+    if angle > 90:
+        return angle - 180
+    elif angle < -90:
+        return angle + 180
+    return angle
+
+
+def _calculate_angle_over_stretch(line, point, label_width_deg=None):
     """
-    Calculate the tangent angle of a line at the nearest point.
+    Calculate the angle of a river stretch that would be covered by a label.
+
+    Instead of using the tangent at a single point, this finds the chord
+    angle over the stretch of river that the label would span.
 
     Args:
         line: LineString geometry
-        point: Point to find angle at
-        search_radius: Search radius in degrees (for finding segment)
+        point: Center point for the label
+        label_width_deg: Width of the label in degrees. If None, falls back
+                         to single-segment tangent calculation.
 
     Returns:
         Angle in degrees (0 = horizontal, positive = counter-clockwise)
     """
-    # Find the closest point on the line
-    nearest_on_line, _ = nearest_points(line, point)
+    # Find where on the line this point falls
+    dist_along = line.project(point)
+    total_length = line.length
 
-    # Get line coordinates
-    coords = list(line.coords)
-    if len(coords) < 2:
+    if label_width_deg and label_width_deg > 0:
+        # Find start and end points of the stretch
+        half_width = label_width_deg / 2
+        start_dist = max(0, dist_along - half_width)
+        end_dist = min(total_length, dist_along + half_width)
+
+        # Get the actual points on the line
+        start_point = line.interpolate(start_dist)
+        end_point = line.interpolate(end_dist)
+
+        dx = end_point.x - start_point.x
+        dy = end_point.y - start_point.y
+    else:
+        # Fallback: use a small delta around the point
+        delta = min(0.1, total_length / 10)
+        start_dist = max(0, dist_along - delta)
+        end_dist = min(total_length, dist_along + delta)
+
+        start_point = line.interpolate(start_dist)
+        end_point = line.interpolate(end_dist)
+
+        dx = end_point.x - start_point.x
+        dy = end_point.y - start_point.y
+
+    if dx == 0 and dy == 0:
         return 0
 
-    # Find the segment containing or nearest to the closest point
-    min_dist = float('inf')
-    best_segment = (coords[0], coords[1])
-
-    for i in range(len(coords) - 1):
-        p1, p2 = coords[i], coords[i + 1]
-        seg = LineString([p1, p2])
-        dist = seg.distance(nearest_on_line)
-        if dist < min_dist:
-            min_dist = dist
-            best_segment = (p1, p2)
-
-    # Calculate angle from the segment
-    p1, p2 = best_segment
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
-
-    # atan2 returns radians, convert to degrees
     angle = math.degrees(math.atan2(dy, dx))
-
-    # Normalize angle so text is always readable (between -90 and +90)
-    if angle > 90:
-        angle -= 180
-    elif angle < -90:
-        angle += 180
-
-    return angle
+    return _normalize_angle(angle)
 
 
-def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
+def get_river_angle(river_name, coords, data_dir, label_width_deg=None):
     """
     Get the rotation angle for a river label based on river direction.
 
@@ -189,7 +220,7 @@ def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
         river_name: Name of the river (e.g., "Brahmaputra")
         coords: (lon, lat) tuple for label position
         data_dir: Path to data directory containing rivers shapefile
-        search_radius: Search radius in degrees for finding nearest segment
+        label_width_deg: Width of the label in degrees (for stretch-based calculation)
 
     Returns:
         Rotation angle in degrees, or 0 if river not found
@@ -221,12 +252,13 @@ def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
             min_dist = dist
             closest_line = line
 
-    angle = _calculate_angle_at_point(closest_line, point, search_radius)
+    angle = _calculate_angle_over_stretch(closest_line, point, label_width_deg)
     logger.info(f"River '{river_name}' at {coords}: rotation={angle:.1f}°")
     return angle
 
 
-def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coords=None):
+def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coords=None,
+                           label_width_deg=None):
     """
     Sample candidate positions along a river's geometry within map extents.
 
@@ -238,11 +270,13 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
         hint_coords: Optional (lon, lat) tuple to guide candidate generation.
                      When provided, candidates are only generated within 1/4
                      of the map extent around the hint position.
+        label_width_deg: Width of label in degrees. Used to calculate angle
+                         over the stretch of river the label would cover.
 
     Returns:
         List of (lon, lat, angle, normal) tuples for candidate positions,
         where normal is a (nx, ny) unit vector perpendicular to river direction.
-        Sorted by preference (closest to hint or middle of river first).
+        Sorted by preference (horizontal angles first, then by location).
         Returns empty list if river not found.
     """
     river_data = _load_rivers(data_dir)
@@ -334,8 +368,8 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
                 line_filtered += 1
                 continue
 
-            # Calculate angle at this point
-            angle = _calculate_angle_at_point(line, point)
+            # Calculate angle over the stretch the label would cover
+            angle = _calculate_angle_over_stretch(line, point, label_width_deg)
             normal = angle_to_normal(angle)
 
             candidates.append((lon, lat, angle, normal, fraction))
@@ -359,7 +393,7 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
             dist = map_center.distance(nearest_on_line)
             if dist < min_dist:
                 min_dist = dist
-                angle = _calculate_angle_at_point(line, nearest_on_line)
+                angle = _calculate_angle_over_stretch(line, nearest_on_line, label_width_deg)
                 normal = angle_to_normal(angle)
                 fallback = (nearest_on_line.x, nearest_on_line.y, angle, normal, 0.5)
 
@@ -367,14 +401,23 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
             candidates.append(fallback)
             logger.debug(f"River '{river_name}': using fallback position near map center")
 
-    # Sort by preference
+    # Sort by preference: prioritize horizontal angles, then by location preference
+    # Candidate tuple: (lon, lat, angle, normal, fraction)
     if hint_coords:
-        # When hint provided, sort by distance to hint
+        # Primary: angle penalty (horizontal preferred)
+        # Secondary: distance to hint
         hint_lon, hint_lat = hint_coords
-        candidates.sort(key=lambda c: (c[0] - hint_lon)**2 + (c[1] - hint_lat)**2)
+        candidates.sort(key=lambda c: (
+            _angle_penalty(c[2]),
+            (c[0] - hint_lon)**2 + (c[1] - hint_lat)**2
+        ))
     else:
-        # Otherwise prefer positions near middle of river (fraction ~0.5)
-        candidates.sort(key=lambda c: abs(c[4] - 0.5))  # fraction is at index 4
+        # Primary: angle penalty (horizontal preferred)
+        # Secondary: positions near middle of river (fraction ~0.5)
+        candidates.sort(key=lambda c: (
+            _angle_penalty(c[2]),
+            abs(c[4] - 0.5)
+        ))
 
     # Return without the fraction (keep lon, lat, angle, normal)
     result = [(lon, lat, angle, normal) for lon, lat, angle, normal, fraction in candidates]

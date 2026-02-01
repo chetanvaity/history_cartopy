@@ -10,7 +10,6 @@ metadata:
   resolution: "high"  # [dev, low, med-yellow, high-yellow] Use dev for quick testing (coastlines only), 
   output: "sack-of-hyderabad-1656.png" # Output filename
   dimensions: [3600, 2400]  # pixels (3:2 ratio, divisible by 300 DPI and 200 tile size)
-  border_style: "test"  # Use "test" border tiles
   graticule: true
   scale_bar: true
 
@@ -37,7 +36,9 @@ labels:
     - name: "Godävari"
     - name: "Tapi"
     - name: "Bhima"
-    - name: "Cauvery"
+    - name: "Narmada"
+    - name: "Penner"
+    - name: "Tungabhadra"
 
   regions:
     - name: "Deccan"

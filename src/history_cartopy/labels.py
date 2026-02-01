@@ -227,7 +227,12 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             rotation = item.get('rotation')
             if rotation is None and data_dir:
                 from history_cartopy.river_alignment import get_river_angle
-                rotation = get_river_angle(river_name, (lon, lat), data_dir)
+                # Calculate label width for stretch-based angle
+                char_width_pts = river_fontsize * 0.6
+                label_width_pts = len(river_name) * char_width_pts
+                label_width_deg = label_width_pts * pm.dpp
+                rotation = get_river_angle(river_name, (lon, lat), data_dir,
+                                           label_width_deg=label_width_deg)
 
             # Compute normal from rotation
             from history_cartopy.river_alignment import angle_to_normal
@@ -255,9 +260,15 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             # Auto-placement: generate candidate positions
             from history_cartopy.river_alignment import sample_river_positions
 
+            # Calculate label width in degrees for stretch-based angle calculation
+            char_width_pts = river_fontsize * 0.6
+            label_width_pts = len(river_name) * char_width_pts
+            label_width_deg = label_width_pts * pm.dpp
+
             hint_coords = item.get('hint_coords')
             candidates_raw = sample_river_positions(
-                river_name, extent, data_dir, hint_coords=hint_coords
+                river_name, extent, data_dir, hint_coords=hint_coords,
+                label_width_deg=label_width_deg
             )
 
             if not candidates_raw:
