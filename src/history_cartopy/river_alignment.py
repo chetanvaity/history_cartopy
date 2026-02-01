@@ -11,6 +11,8 @@ import math
 from shapely.geometry import Point, LineString, MultiLineString
 from shapely.ops import nearest_points
 
+from . import river_search
+
 logger = logging.getLogger('history_cartopy.river_alignment')
 
 # Cache for loaded river data
@@ -86,6 +88,38 @@ def _find_river_geometry(river_name, river_data):
             return geom
 
     return None
+
+
+def _warn_river_not_found(river_name, data_dir):
+    """Log warning with suggestions for similar river names."""
+    logger.warning(f"River '{river_name}' not found in Natural Earth data")
+
+    # Collect all suggestions from both search methods
+    all_suggestions = {}  # name -> (score, reason)
+
+    # Get fuzzy/phonetic matches
+    results = river_search.search_rivers(river_name, data_dir, limit=10)
+    for name, score, match_type in results:
+        if score >= 50:
+            all_suggestions[name] = (score, match_type)
+
+    # Get spelling variation matches (may have better reasons)
+    spelling = river_search.suggest_spellings(river_name, data_dir)
+    for name, score, reason in spelling['suggestions']:
+        if score >= 50:
+            # Keep the higher score and better reason
+            if name in all_suggestions:
+                old_score, _ = all_suggestions[name]
+                if score >= old_score:
+                    all_suggestions[name] = (score, reason)
+            else:
+                all_suggestions[name] = (score, reason)
+
+    # Sort by score and show top matches
+    sorted_suggestions = sorted(all_suggestions.items(), key=lambda x: -x[1][0])
+    if sorted_suggestions:
+        for name, (score, reason) in sorted_suggestions[:5]:
+            logger.warning(f"  Try: '{name}' ({reason})")
 
 
 def _geometry_to_linestrings(geom):
@@ -166,7 +200,7 @@ def get_river_angle(river_name, coords, data_dir, search_radius=0.5):
 
     geom = _find_river_geometry(river_name, river_data)
     if geom is None:
-        logger.warning(f"River '{river_name}' not found in Natural Earth data")
+        _warn_river_not_found(river_name, data_dir)
         return 0
 
     logger.debug(f"Found geometry for river '{river_name}'")
@@ -217,7 +251,7 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
 
     geom = _find_river_geometry(river_name, river_data)
     if geom is None:
-        logger.warning(f"River '{river_name}' not found for auto-placement")
+        _warn_river_not_found(river_name, data_dir)
         return []
 
     linestrings = _geometry_to_linestrings(geom)
@@ -254,14 +288,14 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
     search_height = search_north - search_south
     sample_distance = min(search_width, search_height) / 10
 
-    logger.info(f"River '{river_name}': sample_distance={sample_distance:.3f} "
+    logger.debug(f"River '{river_name}': sample_distance={sample_distance:.3f} "
                 f"(search area {search_width:.1f}° x {search_height:.1f}°)")
 
     candidates = []
     total_samples = 0
     filtered_out = 0
 
-    logger.info(f"River '{river_name}': processing {len(linestrings)} linestring(s)")
+    logger.debug(f"River '{river_name}': processing {len(linestrings)} linestring(s)")
 
     for idx, line in enumerate(linestrings):
         coords = list(line.coords)
@@ -273,7 +307,7 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
 
         # Get bounding box of this linestring
         minx, miny, maxx, maxy = line.bounds
-        logger.info(f"  Linestring {idx}: length={total_length:.2f}, "
+        logger.debug(f"  Linestring {idx}: length={total_length:.2f}, "
                     f"bounds=lon[{minx:.2f}, {maxx:.2f}] lat[{miny:.2f}, {maxy:.2f}]")
 
         # Sample along the line
@@ -311,7 +345,7 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
             logger.debug(f"  Linestring {idx}: {len(sample_points)} samples, "
                          f"{line_candidates} in bounds, {line_filtered} filtered out")
 
-    logger.info(f"River '{river_name}': {total_samples} total samples, "
+    logger.debug(f"River '{river_name}': {total_samples} total samples, "
                 f"{len(candidates)} in bounds, {filtered_out} filtered out")
 
     if not candidates:

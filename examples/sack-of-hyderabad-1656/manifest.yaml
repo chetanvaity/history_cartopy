@@ -34,11 +34,10 @@ labels:
   # Features that require manual placement/rotation per map
   rivers:
     - name: "Krishna"
-      #coords: [79.2, 16.6]
-      #rotation: 10
-    - name: "Godawari"
-      #coords: [77.6, 18.85]
-      #rotation: 10
+    - name: "Godävari"
+    - name: "Tapi"
+    - name: "Bhima"
+    - name: "Cauvery"
 
   regions:
     - name: "Deccan"
@@ -49,7 +48,7 @@ campaigns:
   - name: "Muhammad Sultan"
     path: ["Nanded", "Hyderabad"]
     style: "invasion"
-    rad: -0.1
+    rad: 0.1
     label_above: "M. Sultan"
     label_below: "Jan 1666"
   - name: "Aurangzeb"

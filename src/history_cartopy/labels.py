@@ -279,7 +279,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                     normal=normal,
                     gap_pts=gap_pts,
                 )
-                logger.info(f"  Candidate {idx}: anchor=({lon:.2f}, {lat:.2f}), "
+                logger.debug(f"  Candidate {idx}: anchor=({lon:.2f}, {lat:.2f}), "
                            f"bbox=({element.bbox[0]:.2f}, {element.bbox[1]:.2f}, {element.bbox[2]:.2f}, {element.bbox[3]:.2f})")
                 # Filter out candidates whose bounding box extends outside map extents
                 if not _bbox_within_extent(element.bbox, extent):
