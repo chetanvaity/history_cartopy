@@ -43,10 +43,11 @@ labels:
       #hint_coords: [91.5, 26.2]
       # coords: [92.5, 26.5]
       # rotation: 10
+    - name: "Tista"
 
   regions:
     - name: "ASSAM"
-      coords: [92.5, 26.2]
+      coords: [92.5, 26.1]
       rotation: 0
     - name: "BENGAL"
       coords: [89.5, 24.5]

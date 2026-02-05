@@ -48,6 +48,14 @@ BACKGROUND_DOWNLOADS = {
         'url': 'https://home.chetanv.net/history_cartopy/HYP_LR_SR_OB_DR_YELLOW.zip',
         'description': 'Low resolution yellow variant background',
     },
+    'HYP_LR_SR_OB_DR_GREY.tif': {
+        'url': 'https://home.chetanv.net/history_cartopy/HYP_LR_SR_OB_DR_GREY.zip',
+        'description': 'Low resolution grey variant background',
+    },
+    'HYP_LR_SR_OB_DR_BW.tif': {
+        'url': 'https://home.chetanv.net/history_cartopy/HYP_LR_SR_OB_DR_BW.zip',
+        'description': 'Low resolution black & white variant background',
+    },
 }
 
 # Natural Earth vector data downloads
@@ -295,7 +303,7 @@ def main():
 
     # 2. Optional overrides
     parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')
-    parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow'], help='Override background resolution')
+    parser.add_argument('--res', choices=['dev', 'low', 'med', 'high', 'med-yellow', 'high-yellow', 'med-grey', 'med-bw'], help='Override background resolution')
     parser.add_argument('--output', help='Override output filename')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--debug-river-candidates', action='store_true', help='Render all river label candidates')
@@ -363,6 +371,10 @@ def main():
         ax.background_img(name='ne_hyp', resolution='high-yellow')
     elif res == 'med-yellow':
         ax.background_img(name='ne_hyp', resolution='med-yellow')
+    elif res == 'med-grey':
+        ax.background_img(name='ne_hyp', resolution='med-grey')
+    elif res == 'med-bw':
+        ax.background_img(name='ne_hyp', resolution='med-bw')
     elif res == 'low':
         ax.stock_img()
     elif res == 'dev':

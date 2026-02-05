@@ -24,6 +24,8 @@ metadata:
   #   "high"        - Natural Earth high resolution
   #   "med-yellow"  - Medium res with parchment tint
   #   "high-yellow" - High res with parchment tint
+  #   "med-grey"    - Medium res greyscale
+  #   "med-bw"      - Medium res black & white
   resolution: "high-yellow"
 
   output: "output-filename.png"

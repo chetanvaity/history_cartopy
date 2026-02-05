@@ -7,6 +7,8 @@
     "high": "HYP_HR_SR_OB_DR.tif",
     "med": "HYP_LR_SR_OB_DR.tif",
     "med-yellow": "HYP_LR_SR_OB_DR_YELLOW.tif",
-    "high-yellow": "HYP_HR_SR_OB_DR_YELLOW.tif"
+    "high-yellow": "HYP_HR_SR_OB_DR_YELLOW.tif",
+    "med-grey": "HYP_LR_SR_OB_DR_GREY.tif",
+    "med-bw": "HYP_LR_SR_OB_DR_BW.tif"
    }
 }

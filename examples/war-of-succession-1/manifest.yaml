@@ -4,7 +4,7 @@ metadata:
   year: 1658
   extent: [71, 78, 18.5, 27]
   background: "natural_earth"
-  resolution: "high"
+  resolution: "med-grey"
   output: "war-of-succession-1.png"
   dimensions: [3600, 2400]
   iconset: "iconsets/bwicons"
