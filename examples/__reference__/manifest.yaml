@@ -17,7 +17,12 @@ metadata:
   # Geographic bounds: [west_lon, east_lon, south_lat, north_lat]
   extent: [71, 78, 18.5, 27]
 
-  # Background resolution:
+  # Theme: pre-baked visual preset (fonts, colors, backgrounds, etc.)
+  #   "eighties-textbook" - Full-color Natural Earth, warm tones (default)
+  #   "bw-print"          - Grayscale for black-and-white book printing
+  # theme: "eighties-textbook"
+
+  # Background resolution (overrides theme default if set):
   #   "dev"         - Coastlines only (fast, for testing)
   #   "low"         - Stock image
   #   "med"         - Natural Earth medium resolution

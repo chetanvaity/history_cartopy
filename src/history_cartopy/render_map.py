@@ -21,6 +21,7 @@ from history_cartopy.territories import render_territories
 from history_cartopy.border_styles import render_border
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
+from history_cartopy.themes import apply_theme
 
 # Configure logging
 logging.basicConfig(
@@ -336,11 +337,15 @@ def main():
     gazetteer, manifest = load_data(gazetteer_path, args.manifest)
     logger.debug(f"Loaded {len(gazetteer)} locations from gazetteer")
 
-    # Resolve Settings (CLI overrides Manifest)
-    res = args.res or manifest['metadata'].get('resolution', 'low')
+    # Apply theme (mutates stylemaps dicts in place)
+    theme_name = manifest['metadata'].get('theme', 'eighties-textbook')
+    theme = apply_theme(theme_name)
+
+    # Resolve Settings (CLI > manifest > theme defaults)
+    res = args.res or manifest['metadata'].get('resolution') or theme['background']
     out_file = args.output or manifest['metadata'].get('output', 'map.png')
     extent = manifest['metadata']['extent']
-    border_style = manifest['metadata'].get('border_style')
+    border_style = manifest['metadata'].get('border_style') or theme.get('border_style')
 
     # Get dimensions in pixels (required)
     dimensions_px = manifest['metadata'].get('dimensions', [3600, 2400])  # Default: 3600×2400px
@@ -488,7 +493,15 @@ def main():
         borders_dir = os.path.join(data_dir, 'borders')
         render_border(ax, fig, border_style, borders_dir, dimensions_px, dpi=dpi)
 
-    plt.title(f"{manifest['metadata']['title']} ({manifest['metadata']['year']})")
+    from history_cartopy.stylemaps import TITLE_STYLE
+    plt.title(
+        f"{manifest['metadata']['title']} ({manifest['metadata']['year']})",
+        fontsize=TITLE_STYLE.get('fontsize', 14),
+        fontweight=TITLE_STYLE.get('fontweight', 'bold'),
+        fontfamily=TITLE_STYLE.get('fontfamily', 'serif'),
+        color=TITLE_STYLE.get('color', 'black'),
+        pad=TITLE_STYLE.get('pad', 20),
+    )
 
     # Save
     # Don't use bbox_inches='tight' - we want exact dimensions as specified

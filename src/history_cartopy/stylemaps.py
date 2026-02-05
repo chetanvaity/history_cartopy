@@ -137,3 +137,11 @@ TERRITORY_STYLES = {
         'linewidth': 1.5
     }
 }
+
+TITLE_STYLE = {
+    'fontsize': 14,
+    'fontweight': 'bold',
+    'fontfamily': 'serif',
+    'color': 'black',
+    'pad': 20,
+}
