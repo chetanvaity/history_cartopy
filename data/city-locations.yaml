@@ -14,6 +14,8 @@ locations:
   Surat: [72.83, 21.17]
   Masulipatnam: [81.13, 16.18]
   Pune: [73.85, 18.52]
+  Ahmednagar: [74.74, 19.09]       # Nizam Shahi capital
+  Bombay: [72.88, 19.08]           # Portuguese/English port
   Bezwada: [80.64, 16.50] # Modern Vijayawada
   Nanded: [77.30, 19.15]      # Mughal frontier post on the Godavari
   Gandikota: [78.28, 14.81]   # Mir Jumla's impregnable rock fort on the Pennar
@@ -35,6 +37,8 @@ locations:
   Agra: [78.01, 27.18]
   Ahmedabad: [72.57, 23.02]
   Jodhpur: [73.02, 26.23]
+  Udaipur: [73.71, 24.58]          # Mewar capital
+  Porbandar: [69.60, 21.64]        # Kathiawar coast port
 
   # ===========================================================================
   # INDIA - Bengal & Assam (Mir Jumla's Campaign 1661-63)
@@ -63,3 +67,40 @@ locations:
   Babylon: [44.42, 32.54]          # Mesopotamia
   Susa: [48.26, 32.19]             # Persian administrative capital
   Persepolis: [52.89, 29.93]       # Ceremonial capital of Persia
+  Isfahan: [51.68, 32.65]          # Safavid capital
+  Shiraz: [52.53, 29.59]           # Fars province capital
+  Teheran: [51.39, 35.69]          # Northern Persian city
+
+  # ===========================================================================
+  # INDIA - Delhi & Punjab
+  # ===========================================================================
+  Delhi: [77.21, 28.61]            # Mughal imperial capital
+  Lucknow: [80.95, 26.85]          # Awadh
+  Multan: [71.47, 30.20]           # Gateway to Persia via Bolan Pass
+  Lahore: [74.35, 31.55]           # Punjab capital
+  Attock: [72.36, 33.77]           # Indus crossing, fort town
+  Peshawar: [71.58, 34.01]         # Frontier city, Khyber Pass
+  Kabul: [69.17, 34.53]            # Mughal frontier province
+  Quetta: [67.00, 30.18]           # Balochistan, Bolan Pass
+  Kandahar: [65.71, 31.61]         # Contested Mughal-Safavid frontier
+
+  # ===========================================================================
+  # ARABIA & MESOPOTAMIA
+  # ===========================================================================
+  Mecca: [39.83, 21.42]            # Holy city
+  Medina: [39.61, 24.47]           # Holy city
+  Basra: [47.78, 30.51]            # Ottoman port on the Shatt al-Arab
+
+  # ===========================================================================
+  # OTTOMAN EMPIRE
+  # ===========================================================================
+  Constantinople: [28.98, 41.01]   # Ottoman capital
+
+  # ===========================================================================
+  # CENTRAL ASIA
+  # ===========================================================================
+  Bukhara: [64.42, 39.77]          # Uzbek khanate capital
+  Balkh: [66.90, 36.76]            # Northern Afghan trading city
+  Samarkhand: [66.96, 39.65]       # Timurid capital
+  Kashghar: [75.99, 39.47]         # Silk Road city, western Tarim Basin
+  Herat: [62.20, 34.34]            # Western Afghan crossroads
