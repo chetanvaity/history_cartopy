@@ -1,0 +1,115 @@
+# Aurangzeb's Diplomatic World: Embassies to and from the Mughal Court, 1659-1690
+metadata:
+  title: "Aurangzeb and the Muslim World"
+  year: 1665
+  extent: [37, 93, 10, 44]
+  theme: eighties-textbook
+  output: "mughal-neighbours-1650.png"
+  dimensions: [3600, 2400]
+  graticule: true
+  scale_bar: true
+
+labels:
+  cities:
+    - name: "Delhi"
+      level: 1
+    - name: "Agra"
+      level: 2
+    - name: "Multan"
+      level: 2
+    - name: "Lahore"
+      level: 2
+    - name: "Lucknow"
+      level: 2
+    - name: "Dacca"
+      level: 2
+    - name: "Bombay"
+      level: 4
+    - name: "Bijapur"
+      level: 2
+    - name: "Golconda"
+      level: 2
+    - name: Burhanpur
+      level: 3
+    - name: Ahmednagar
+      level: 3
+    - name: Surat
+      level: 2
+    - name: Jodhpur
+      level: 2
+    - name: Udaipur
+      level: 2
+    - name: Ahmedabad
+      level: 2
+    - name: Porbandar
+      level: 3
+
+    # Persian capital — centre of the Shah Abbas exchange
+    - name: "Isfahan"
+      level: 1
+    - name: "Kabul"
+      level: 3
+    - name: "Kandahar"
+      level: 3
+    - name: "Peshawar"
+      level: 3
+    - name: "Samarkhand"
+      level: 2
+    - name: Herat
+      level: 3
+    - name: Shiraz
+      level: 3
+    - name: Teheran
+      level: 3
+
+    # Holy cities — destination for Aurangzeb's largesse
+    - name: "Mecca"
+      level: 1
+    - name: "Medina"
+      level: 2
+
+    # Central Asian embassies
+    - name: "Bukhara"
+      level: 2
+    - name: "Balkh"
+      level: 3
+    - name: "Kashghar"
+      level: 3
+    - name: "Basra"
+      level: 3
+
+  rivers:
+    - name: "Indus"
+    - name: "Tigris"
+    - name: "Ganga"
+    - name: "Narmada"
+    - name: "Cauvery"
+    - name: Amu Darya
+ 
+  regions:
+    - name: "MUGHAL EMPIRE"
+      coords: [74, 24]
+      rotation: 0
+    - name: "SAFAVID PERSIA"
+      coords: [53, 33]
+      rotation: 0
+    - name: "ARABIA"
+      coords: [43, 20]
+      rotation: 0
+
+territories:
+  - file: mughal-1650.geojson
+    style: empire
+    type: edge-tint-fill
+  - file: persia-1650.geojson
+    style: kingdom1
+    type: fuzzy-fill
+  - file: golconda-1655.geojson
+    style: kingdom2
+    type: edge-tint-fill
+  - file: bijapur-1655.geojson
+    style: kingdom3
+    type: edge-tint-fill
+  - file: ottoman-1651.geojson
+    style: kingdom3
+    type: fuzzy-fill
