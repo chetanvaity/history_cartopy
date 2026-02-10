@@ -12,11 +12,11 @@ Each border style directory must contain these 8 PNG files:
    - `left-vertical-tile.png` - 100×200 pixels
    - `right-vertical-tile.png` - 100×200 pixels
 
-2. **Corner Tiles** (placed at corners, can "jut in" to map):
-   - `left-top-corner-tile.png` - 300×300 pixels
-   - `right-top-corner-tile.png` - 300×300 pixels
-   - `left-bottom-corner-tile.png` - 300×300 pixels
-   - `right-bottom-corner-tile.png` - 300×300 pixels
+2. **Corner Tiles** (placed at corners):
+   - `left-top-corner-tile.png` - 100×100 pixels
+   - `right-top-corner-tile.png` - 100×100 pixels
+   - `left-bottom-corner-tile.png` - 100×100 pixels
+   - `right-bottom-corner-tile.png` - 100×100 pixels
 
 ### Tile Specifications
 
@@ -32,9 +32,8 @@ Each border style directory must contain these 8 PNG files:
   - Tiles repeat vertically with no cropping (for 2000px map: 10 tiles; for 2400px: 12 tiles)
 
 **Corner Tiles:**
-- **300×300 pixels** (3× the border width)
-- Larger size allows for elaborate corner decorations
-- Corners overlay the edges and can "jut into" the map area
+- **100×100 pixels** (same as the border width)
+- Corners fill the square where two edges meet
 - Should visually connect with the edge patterns
 
 **File Format:**
@@ -74,7 +73,7 @@ data/borders/
 **Border Width:**
 - Standard border width is 100 pixels
 - This is 1/30th of a 3000px map width
-- Corners at 300px extend into the map for emphasis
+- Corners are 100×100px, matching the edge width
 
 **Historical Accuracy:**
 - Mughal style: Islamic geometric patterns, arabesques, floral motifs

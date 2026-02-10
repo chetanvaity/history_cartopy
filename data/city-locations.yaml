@@ -70,6 +70,7 @@ locations:
   Isfahan: [51.68, 32.65]          # Safavid capital
   Shiraz: [52.53, 29.59]           # Fars province capital
   Teheran: [51.39, 35.69]          # Northern Persian city
+  Nishapur: [58.80, 36.21]         # Khorasan, eastern Persia
 
   # ===========================================================================
   # INDIA - Delhi & Punjab

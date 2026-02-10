@@ -60,6 +60,8 @@ labels:
       level: 3
     - name: Teheran
       level: 3
+    - name: Nishapur
+      level: 3
 
     # Holy cities — destination for Aurangzeb's largesse
     - name: "Mecca"

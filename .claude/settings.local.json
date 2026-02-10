@@ -22,7 +22,8 @@
       "Bash(history-map:*)",
       "Bash(python:*)",
       "Bash(ls:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(python3:*)"
     ]
   }
 }

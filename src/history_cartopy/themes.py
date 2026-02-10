@@ -25,7 +25,7 @@ THEMES = {
     # =========================================================================
     'eighties-textbook': {
         'background': 'high',
-        'border_style': None,
+        'border_style': 'double-black',
         'iconset': 'iconsets/default',
 
         'title_style': {

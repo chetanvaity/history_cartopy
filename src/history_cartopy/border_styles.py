@@ -233,42 +233,33 @@ def render_border(ax, fig, border_style_name, borders_dir, dimensions_px, dpi=30
                       aspect='auto')
 
     # === RENDER CORNERS (on top of edges) ===
+    # Corners are border-width × border-width (same size as the edge width).
+    corner_width_axes = BORDER_WIDTH_PX / fig_width_px
+    corner_height_axes = BORDER_WIDTH_PX / fig_height_px
 
     # Top-left corner
-    corner = tiles['top_left']
-    corner_width_axes = corner.width / fig_width_px
-    corner_height_axes = corner.height / fig_height_px
-    overlay_ax.imshow(corner,
+    overlay_ax.imshow(tiles['top_left'],
                       extent=[0, corner_width_axes, 1 - corner_height_axes, 1],
                       zorder=7.5,
                       clip_on=False,
                       aspect='auto')
 
     # Top-right corner
-    corner = tiles['top_right']
-    corner_width_axes = corner.width / fig_width_px
-    corner_height_axes = corner.height / fig_height_px
-    overlay_ax.imshow(corner,
+    overlay_ax.imshow(tiles['top_right'],
                       extent=[1 - corner_width_axes, 1, 1 - corner_height_axes, 1],
                       zorder=7.5,
                       clip_on=False,
                       aspect='auto')
 
     # Bottom-left corner
-    corner = tiles['bottom_left']
-    corner_width_axes = corner.width / fig_width_px
-    corner_height_axes = corner.height / fig_height_px
-    overlay_ax.imshow(corner,
+    overlay_ax.imshow(tiles['bottom_left'],
                       extent=[0, corner_width_axes, 0, corner_height_axes],
                       zorder=7.5,
                       clip_on=False,
                       aspect='auto')
 
     # Bottom-right corner
-    corner = tiles['bottom_right']
-    corner_width_axes = corner.width / fig_width_px
-    corner_height_axes = corner.height / fig_height_px
-    overlay_ax.imshow(corner,
+    overlay_ax.imshow(tiles['bottom_right'],
                       extent=[1 - corner_width_axes, 1, 0, corner_height_axes],
                       zorder=7.5,
                       clip_on=False,
