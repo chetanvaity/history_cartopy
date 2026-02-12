@@ -19,6 +19,7 @@ from history_cartopy.campaigns import (
 )
 from history_cartopy.territories import render_territories
 from history_cartopy.border_styles import render_border
+from history_cartopy.title_cartouche import render_title_cartouche
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
 from history_cartopy.themes import apply_theme
@@ -489,19 +490,15 @@ def main():
         _render_scale_bar(ax, extent, position=position)
 
     # Render borders (must be after all map elements so borders are on top)
+    overlay_ax = None
     if border_style:
         borders_dir = os.path.join(data_dir, 'borders')
-        render_border(ax, fig, border_style, borders_dir, dimensions_px, dpi=dpi)
+        overlay_ax = render_border(ax, fig, border_style, borders_dir, dimensions_px, dpi=dpi)
 
-    from history_cartopy.stylemaps import TITLE_STYLE
-    plt.title(
-        f"{manifest['metadata']['title']} ({manifest['metadata']['year']})",
-        fontsize=TITLE_STYLE.get('fontsize', 14),
-        fontweight=TITLE_STYLE.get('fontweight', 'bold'),
-        fontfamily=TITLE_STYLE.get('fontfamily', 'serif'),
-        color=TITLE_STYLE.get('color', 'black'),
-        pad=TITLE_STYLE.get('pad', 20),
-    )
+    # Render title cartouche inside the map
+    cartouche_style = theme.get('cartouche_style', {})
+    if manifest['metadata'].get('title') and cartouche_style:
+        render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_style)
 
     # Save
     # Don't use bbox_inches='tight' - we want exact dimensions as specified

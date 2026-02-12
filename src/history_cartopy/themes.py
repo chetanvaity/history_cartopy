@@ -28,6 +28,18 @@ THEMES = {
         'border_style': 'double-black',
         'iconset': 'iconsets/default',
 
+        'cartouche_style': {
+            'outer_line_width': 3,       # points
+            'inner_line_width': 1,       # points
+            'line_gap': 3,               # points
+            'line_color': 'black',
+            'background_color': 'white',
+            'padding': 10,               # points, inside inner line
+            'title_fontsize': 16,
+            'subtitle_fontsize': 11,
+            'font_family': 'serif',
+        },
+
         'title_style': {
             'fontsize': 14,
             'fontweight': 'bold',
@@ -181,6 +193,18 @@ THEMES = {
         'background': 'med-bw',
         'border_style': None,
         'iconset': 'iconsets/bwicons',
+
+        'cartouche_style': {
+            'outer_line_width': 2,
+            'inner_line_width': 0.5,
+            'line_gap': 2,
+            'line_color': '#111111',
+            'background_color': 'white',
+            'padding': 10,
+            'title_fontsize': 15,
+            'subtitle_fontsize': 10,
+            'font_family': 'serif',
+        },
 
         'title_style': {
             'fontsize': 13,

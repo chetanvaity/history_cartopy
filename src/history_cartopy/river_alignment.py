@@ -421,5 +421,5 @@ def sample_river_positions(river_name, extent, data_dir, padding=0.5, hint_coord
 
     # Return without the fraction (keep lon, lat, angle, normal)
     result = [(lon, lat, angle, normal) for lon, lat, angle, normal, fraction in candidates]
-    logger.info(f"River '{river_name}': generated {len(result)} candidate positions for auto-placement")
+    logger.debug(f"River '{river_name}': generated {len(result)} candidate positions for auto-placement")
     return result

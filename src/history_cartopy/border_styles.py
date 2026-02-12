@@ -264,3 +264,5 @@ def render_border(ax, fig, border_style_name, borders_dir, dimensions_px, dpi=30
                       zorder=7.5,
                       clip_on=False,
                       aspect='auto')
+
+    return overlay_ax

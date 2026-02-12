@@ -11,8 +11,11 @@
 # METADATA (required)
 # =============================================================================
 metadata:
-  title: "Your Map Title"              # Displayed in the title bar
+  title: "Your Map Title"              # Displayed in the title cartouche
   year: 1658                           # Use negative for BCE (e.g., -334)
+  subtitle: "optional subtitle text"   # Shown below title in cartouche (optional)
+  title_position: "top-left"           # Cartouche position: "top-left" (default),
+                                       #   "top-right", "bottom-left", "bottom-right"
 
   # Geographic bounds: [west_lon, east_lon, south_lat, north_lat]
   extent: [71, 78, 18.5, 27]

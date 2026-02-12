@@ -1,11 +1,14 @@
 metadata:
   title: "Persia and India"
+  subtitle: "in the time of Aurangzeb - 1650"
   year: 1650
-  extent: [37, 93, 10, 44]
+  extent: [38, 94, 10, 44]
   theme: eighties-textbook
   output: "persia-india-1650.png"
   dimensions: [3600, 2400]
-  graticule: true
+  graticule:
+    labels: true
+    lines: true
   scale_bar: true
 
 labels:
@@ -89,10 +92,10 @@ labels:
  
   regions:
     - name: "MUGHAL EMPIRE"
-      coords: [74, 24]
+      coords: [74, 25]
       rotation: 0
     - name: "SAFAVID PERSIA"
-      coords: [53, 33]
+      coords: [52, 33]
       rotation: 0
 
 territories:
@@ -100,7 +103,7 @@ territories:
     style: empire
     type: fuzzy-fill
   - file: persia-1650.geojson
-    style: kingdom1
+    style: kingdom2
     type: fuzzy-fill
   - file: golconda-1655.geojson
     style: kingdom2

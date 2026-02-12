@@ -278,7 +278,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             # Generate LabelCandidate with multiple positions
             positions = []
             filtered_out = 0
-            logger.info(f"River '{river_name}': extent={extent}")
+            logger.debug(f"River '{river_name}': extent={extent}")
             for idx, (lon, lat, angle, normal) in enumerate(candidates_raw):
                 element = pm.add_river_label(
                     f"river_{river_name}_pos{len(positions)}",
