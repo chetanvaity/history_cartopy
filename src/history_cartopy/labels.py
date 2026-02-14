@@ -219,6 +219,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
 
     for item in rivers:
         river_name = item['name']
+        display_name = item.get('display_as', river_name)
         gap_pts = item.get('gap', default_river_gap)
 
         if 'coords' in item:
@@ -229,7 +230,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                 from history_cartopy.river_alignment import get_river_angle
                 # Calculate label width for stretch-based angle
                 char_width_pts = river_fontsize * 0.6
-                label_width_pts = len(river_name) * char_width_pts
+                label_width_pts = len(display_name) * char_width_pts
                 label_width_deg = label_width_pts * pm.dpp
                 rotation = get_river_angle(river_name, (lon, lat), data_dir,
                                            label_width_deg=label_width_deg)
@@ -239,7 +240,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             normal = angle_to_normal(rotation or 0)
 
             river_data.append({
-                'name': river_name,
+                'name': display_name,
                 'coords': (lon, lat),
                 'rotation': rotation or 0,
                 'normal': normal,
@@ -249,7 +250,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             pm.add_river_label(
                 f"river_{river_name}",
                 (lon, lat),
-                river_name,
+                display_name,
                 fontsize=river_fontsize,
                 rotation=rotation or 0,
                 priority=river_priority,
@@ -262,7 +263,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
 
             # Calculate label width in degrees for stretch-based angle calculation
             char_width_pts = river_fontsize * 0.6
-            label_width_pts = len(river_name) * char_width_pts
+            label_width_pts = len(display_name) * char_width_pts
             label_width_deg = label_width_pts * pm.dpp
 
             hint_coords = item.get('hint_coords')
@@ -283,7 +284,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                 element = pm.add_river_label(
                     f"river_{river_name}_pos{len(positions)}",
                     (lon, lat),
-                    river_name,
+                    display_name,
                     fontsize=river_fontsize,
                     rotation=angle,
                     priority=river_priority,

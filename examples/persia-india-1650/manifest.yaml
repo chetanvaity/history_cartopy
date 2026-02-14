@@ -86,7 +86,8 @@ labels:
   rivers:
     - name: "Indus"
     - name: "Tigris"
-    - name: "Ganga"
+    - name: "Ganges"
+      display_as: "Ganga"
     - name: "Narmada"
     - name: "Cauvery"
     - name: Amu Darya

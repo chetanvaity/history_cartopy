@@ -126,6 +126,7 @@ labels:
     # Gap: perpendicular offset from river line (in points)
     # Keeps label from obscuring the river
     - name: "Ganges"
+      display_as: "Ganga"              # Optional: render different text than lookup name
       hint_coords: [85, 25]
       gap: 12                          # Offset in points (default: 8)
 
