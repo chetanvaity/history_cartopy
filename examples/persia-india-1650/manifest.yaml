@@ -1,8 +1,9 @@
 metadata:
   title: "Persia and India"
   subtitle: "in the time of Aurangzeb - 1650"
+  title_position: "top-right"
   year: 1650
-  extent: [38, 94, 10, 44]
+  extent: [39, 95, 11, 45]
   theme: eighties-textbook
   output: "persia-india-1650.png"
   dimensions: [3600, 2400]
@@ -107,7 +108,7 @@ territories:
     type: edge-band
   - file: golconda-1655.geojson
     style: kingdom2
-    type: edge-tint-fill
+    type: edge-band
   - file: bijapur-1655.geojson
     style: kingdom3
-    type: edge-tint-fill
+    type: edge-band

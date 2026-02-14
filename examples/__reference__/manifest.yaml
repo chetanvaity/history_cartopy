@@ -172,7 +172,7 @@ campaigns:
 #   "fuzzy-fill"     - Soft gradient fill
 #   "hatched"        - Diagonal line pattern
 #   "edge-tint"      - Tinted border only
-#   "edge-tint-fill" - Tinted border with light fill
+#   "edge-band"      - Dark border + fading inner ribbon
 #
 # Styles (defined in stylemaps.py):
 #   "empire", "kingdom1", "kingdom2", "kingdom3", "kingdom-purple"

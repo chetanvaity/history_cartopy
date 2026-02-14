@@ -30,36 +30,6 @@ def apply_hatched_territory(ax, geometry, style_key):
                       facecolor='none', edgecolor=style['edgecolor'],
                       hatch=style.get('hatch', '////'), linewidth=0, alpha=0.3, zorder=2)
 
-def apply_edge_tint_fill_territory(ax, geometry, style_key):
-    style = TERRITORY_STYLES.get(style_key).copy()
-    dpp = get_deg_per_pt(ax)
-    color = style['facecolor']
-    base_alpha = style.get('alpha', 0.4)
-
-    # Inward ribbon steps in points (screen-space)
-    pt_steps = [0, -5, -10, -15, -20]
-
-    for i, pt in enumerate(pt_steps):
-        # Shrink the geometry inward
-        layer_geom = geometry.buffer(pt * dpp)
-
-        # Calculate a decaying alpha:
-        # The first layer (pt=0) is the most opaque.
-        layer_alpha = base_alpha / (i + 1)
-
-        ax.add_geometries([layer_geom], ccrs.PlateCarree(),
-                          facecolor=color,
-                          alpha=layer_alpha,
-                          edgecolor='none',
-                          zorder=1)
-
-    # Draw one very thin solid line on the boundary to keep it crisp
-    ax.add_geometries([geometry], ccrs.PlateCarree(),
-                      facecolor='none',
-                      edgecolor=color,
-                      linewidth=0.8,
-                      alpha=base_alpha,
-                      zorder=2)
 
 def apply_edge_tint_territory(ax, geometry, style_key):
     style = TERRITORY_STYLES.get(style_key).copy()
