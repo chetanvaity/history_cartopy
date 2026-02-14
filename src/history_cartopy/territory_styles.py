@@ -36,9 +36,8 @@ def apply_edge_tint_fill_territory(ax, geometry, style_key):
     color = style['facecolor']
     base_alpha = style.get('alpha', 0.4)
 
-    # We define steps that only go INWARD (negative pt values)
-    # 0 is the sharp boundary. -2, -4, -6 are deeper into the kingdom.
-    pt_steps = [0, -2, -4, -6]
+    # Inward ribbon steps in points (screen-space)
+    pt_steps = [0, -5, -10, -15, -20]
 
     for i, pt in enumerate(pt_steps):
         # Shrink the geometry inward
@@ -97,5 +96,44 @@ def apply_edge_tint_territory(ax, geometry, style_key):
                       edgecolor=color,
                       linewidth=0.6,
                       alpha=base_alpha,
+                      zorder=2)
+
+
+def _darken_color(hex_color, factor=0.4):
+    """Darken a hex color towards black. factor=0 gives black, factor=1 gives original."""
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(hex_color)
+    return (r * factor, g * factor, b * factor)
+
+
+def apply_edge_band_territory(ax, geometry, style_key):
+    style = TERRITORY_STYLES.get(style_key).copy()
+    dpp = get_deg_per_pt(ax)
+    color = style['facecolor']
+
+    # Inner ribbon: 10pt wide, fading inward in 5 slices
+    ribbon_steps = [0, -2, -4, -6, -8, -10]
+    num_slices = len(ribbon_steps) - 1
+    for i in range(num_slices):
+        outer_geom = geometry.buffer(ribbon_steps[i] * dpp)
+        inner_geom = geometry.buffer(ribbon_steps[i + 1] * dpp)
+        ribbon_slice = outer_geom.difference(inner_geom)
+
+        # Linear fade from 0.5 at the border to 0 at the inner edge
+        layer_alpha = 0.5 * (1 - i / num_slices)
+
+        ax.add_geometries([ribbon_slice], ccrs.PlateCarree(),
+                          facecolor=color,
+                          alpha=layer_alpha,
+                          edgecolor='none',
+                          zorder=1)
+
+    # Dark border line: 2pt, territory color darkened towards black
+    dark_color = _darken_color(color)
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none',
+                      edgecolor=dark_color,
+                      linewidth=1.0,
+                      alpha=1.0,
                       zorder=2)
 

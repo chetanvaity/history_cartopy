@@ -100,11 +100,11 @@ labels:
 
 territories:
   - file: mughal-1650.geojson
-    style: empire
-    type: fuzzy-fill
+    style: kingdom3
+    type: edge-band
   - file: persia-1650.geojson
     style: kingdom2
-    type: fuzzy-fill
+    type: edge-band
   - file: golconda-1655.geojson
     style: kingdom2
     type: edge-tint-fill

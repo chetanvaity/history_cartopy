@@ -11,6 +11,7 @@ from history_cartopy.territory_styles import (
     apply_hatched_territory,
     apply_edge_tint_territory,
     apply_edge_tint_fill_territory,
+    apply_edge_band_territory,
 )
 
 logger = logging.getLogger('history_cartopy.territories')
@@ -62,6 +63,8 @@ def render_territories(ax, manifest, polygons_dir):
                     apply_edge_tint_territory(ax, smooth_geom, style_key)
                 elif render_type == 'edge-tint-fill':
                     apply_edge_tint_fill_territory(ax, smooth_geom, style_key)
+                elif render_type == 'edge-band':
+                    apply_edge_band_territory(ax, smooth_geom, style_key)
                 else:
                     logger.warning(f"Unknown territory type: {render_type}")
 
