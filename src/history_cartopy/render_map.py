@@ -3,7 +3,6 @@
 import argparse
 import logging
 import os
-import sys
 import urllib.request
 import zipfile
 import shutil
@@ -298,10 +297,8 @@ def _validate_dimensions(dimensions_px, dpi=300):
 
 def main():
     parser = argparse.ArgumentParser(description='History Map Renderer')
-    parser.add_description = 'Render a historical map from a YAML manifest.'
-
     # 1. Positional argument for the manifest (optional if --init is used)
-    parser.add_argument('manifest', nargs='?', help='Path to the map manifest YAML aaaa')
+    parser.add_argument('manifest', nargs='?', help='Path to the map manifest YAML')
 
     # 2. Optional overrides
     parser.add_argument('--init', action='store_true', help='Download Natural Earth background images')

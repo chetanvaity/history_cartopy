@@ -3,9 +3,6 @@ from matplotlib.transforms import offset_copy
 import cartopy.crs as ccrs
 import matplotlib.patches as patches
 import numpy as np
-import json
-from shapely.geometry import shape
-import cartopy.feature as cfeature
 from history_cartopy.stylemaps import *
 from history_cartopy.styles import *
 

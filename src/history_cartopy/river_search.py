@@ -8,7 +8,6 @@ Provides fuzzy string matching and phonetic (similar-sounding) matching.
 import os
 import re
 from difflib import SequenceMatcher
-from collections import defaultdict
 
 
 def _load_river_names(data_dir):

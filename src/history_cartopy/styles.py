@@ -1,11 +1,6 @@
 import matplotlib.patheffects as PathEffects
 from matplotlib.transforms import offset_copy
 import cartopy.crs as ccrs
-import matplotlib.patches as patches
-import numpy as np
-import json
-from shapely.geometry import shape
-import cartopy.feature as cfeature
 from history_cartopy.stylemaps import *
 
 def apply_text(ax, lon, lat, text, style_key, color_override=None, rotation=0, x_offset=0, y_offset=0, **kwargs):

@@ -146,14 +146,12 @@ class AnchorCircle:
 
         self._resolved = True
 
-    def get_offset(self, attachment_index, is_rectangle=False, rect_anchor='center'):
+    def get_offset(self, attachment_index):
         """
         Get the x, y offset in points for an attachment.
 
         Args:
             attachment_index: Index returned by add_attachment()
-            is_rectangle: If True, adjusts for rectangle placement
-            rect_anchor: For rectangles - 'center', 'corner', or 'bottom_center'
 
         Returns:
             (x_offset, y_offset) in points
@@ -206,19 +204,6 @@ class AnchorCircle:
 
             # Get alignment for this position
             ha, va = POSITION_ALIGNMENT[pos_name]
-
-            # Adjust offset based on text height for positions where text
-            # needs to clear the anchor vertically
-            # For 'bottom' aligned text (N, NE, NW), add text_height to y
-            # so the text bottom edge clears the offset point
-            if va == 'bottom' and text_height_pts > 0:
-                # Text is anchored at bottom, extends upward
-                # No adjustment needed - offset point is where bottom of text goes
-                pass
-            elif va == 'top' and text_height_pts > 0:
-                # Text is anchored at top, extends downward
-                # No adjustment needed - offset point is where top of text goes
-                pass
 
             candidates.append((pos_name, x_offset, y_offset, ha, va))
 
