@@ -5,7 +5,7 @@
 # Copy this file as a starting point and modify for your map.
 #
 # Required sections: metadata, labels
-# Optional sections: campaigns, territories, events, icons
+# Optional sections: campaigns, territories, events, icons, narrative
 
 # =============================================================================
 # METADATA (required)
@@ -222,3 +222,41 @@ icons:
     # OR
     # location: "CityName"             # Gazetteer location
     offset: [0, 10]                    # Offset from location (optional)
+
+# =============================================================================
+# NARRATIVE (optional)
+# =============================================================================
+# Bordered text box with historical narrative paragraphs, placed in a corner
+# of the map. Optionally, items can have numbered/lettered circle markers
+# rendered on the map at specific locations.
+#
+# The box uses the same double-border style as the title cartouche.
+# If the narrative and title share the same corner, they stack automatically.
+#
+narrative:
+  # Position: "bottom-left" (default), "bottom-right", "top-left", "top-right"
+  position: "bottom-left"
+
+  # Optional overrides (defaults come from theme narrative_style):
+  # fontsize: 6                        # Body text font size in points (default: 8)
+  # width: 0.40                        # Box width as fraction of map (default: 0.30)
+
+  items:
+    # Simple paragraph (no map marker)
+    - label: false
+      text: >
+        Your narrative paragraph here. Long text is automatically
+        wrapped to fit the box width.
+
+    # Paragraph with a numbered marker on the map (by coordinates)
+    - label: "1"
+      coords: [66.0, 31.5]             # Marker position [lon, lat]
+      text: >
+        This paragraph has a circled "1" marker rendered on the map
+        at the specified coordinates.
+
+    # Paragraph with a marker placed at a city location (from gazetteer)
+    - label: "2"
+      location: "CityName"             # Resolved from gazetteer
+      text: >
+        This paragraph has a circled "2" marker at the named city.

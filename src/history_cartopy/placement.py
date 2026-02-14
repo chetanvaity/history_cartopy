@@ -19,6 +19,7 @@ logger = logging.getLogger('history_cartopy.placement')
 PRIORITY = {
     # Fixed elements (dots, icons) - high priority
     'city_level_1': 100,  # Capital dot
+    'narrative_marker': 85,
     'event_icon': 90,
     'city_level_2': 80,   # Major city dot
     'city_level_3': 70,   # Minor city dot

@@ -33,7 +33,7 @@ def render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_s
     position = metadata.get('title_position', 'top-left')
 
     if not title:
-        return
+        return None
 
     # Create overlay axes if none provided (no border case)
     if overlay_ax is None:
@@ -188,3 +188,5 @@ def render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_s
             color=line_color, va='top', ha='left',
             transform=overlay_ax.transAxes, zorder=8.3,
         )
+
+    return (box_x, box_y, box_w, box_h)

@@ -148,6 +148,19 @@ THEMES = {
             },
         },
 
+        'narrative_style': {
+            'body_fontsize': 8,
+            'label_fontsize': 9,
+            'font_family': 'serif',
+            'text_color': '#333333',
+            'box_width_frac': 0.30,
+            'marker_radius': 6,       # points
+            'marker_color': '#333333',
+            'marker_linewidth': 1.5,
+            'para_gap_factor': 0.8,    # gap = fontsize * this factor
+            'wrap_width': 50,          # characters
+        },
+
         'territory_styles': {
             'empire': {
                 'facecolor': '#ffcc00',
@@ -312,6 +325,19 @@ THEMES = {
                 'arrowstyle': '-',
                 'alpha': 0.9,
             },
+        },
+
+        'narrative_style': {
+            'body_fontsize': 8,
+            'label_fontsize': 9,
+            'font_family': 'serif',
+            'text_color': '#222222',
+            'box_width_frac': 0.30,
+            'marker_radius': 6,
+            'marker_color': '#222222',
+            'marker_linewidth': 1.5,
+            'para_gap_factor': 0.8,
+            'wrap_width': 50,
         },
 
         'territory_styles': {

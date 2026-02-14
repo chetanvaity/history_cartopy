@@ -19,6 +19,9 @@ from history_cartopy.campaigns import (
 from history_cartopy.territories import render_territories
 from history_cartopy.border_styles import render_border
 from history_cartopy.title_cartouche import render_title_cartouche
+from history_cartopy.narrative import (
+    collect_narrative_markers, render_narrative_markers, render_narrative_box
+)
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
 from history_cartopy.themes import apply_theme
@@ -433,6 +436,11 @@ def main():
         gazetteer, manifest, pm, data_dir=data_dir
     )
 
+    # Collect narrative markers (fixed elements for placement)
+    narrative_style = theme.get('narrative_style', {})
+    logger.info("Collecting narrative markers")
+    collect_narrative_markers(manifest, gazetteer, pm, narrative_style=narrative_style)
+
     logger.info("Collecting events")
     event_candidates, event_render_data = collect_events(
         gazetteer, manifest, pm, data_dir=data_dir
@@ -480,6 +488,12 @@ def main():
     render_events_resolved(ax, event_render_data, resolved_positions,
                            data_dir=data_dir, manifest=manifest)
 
+    # Render narrative markers on map
+    logger.info("Rendering narrative markers")
+    cartouche_style_for_narr = theme.get('cartouche_style', {})
+    bg_color = cartouche_style_for_narr.get('background_color', 'white')
+    render_narrative_markers(ax, manifest, gazetteer, narrative_style, bg_color, dpp)
+
     # Scale bar
     scale_bar = manifest['metadata'].get('scale_bar', False)
     if scale_bar:
@@ -494,8 +508,16 @@ def main():
 
     # Render title cartouche inside the map
     cartouche_style = theme.get('cartouche_style', {})
+    title_box_bounds = None
     if manifest['metadata'].get('title') and cartouche_style:
-        render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_style)
+        title_box_bounds = render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_style)
+
+    # Render narrative box
+    logger.info("Rendering narrative box")
+    if manifest.get('narrative') and narrative_style:
+        render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
+                             cartouche_style, narrative_style,
+                             title_box_bounds=title_box_bounds)
 
     # Save
     # Don't use bbox_inches='tight' - we want exact dimensions as specified
