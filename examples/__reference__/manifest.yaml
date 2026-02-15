@@ -240,6 +240,9 @@ narrative:
   # Optional overrides (defaults come from theme narrative_style):
   # fontsize: 6                        # Body text font size in points (default: 8)
   # width: 0.40                        # Box width as fraction of map (default: 0.30)
+  #
+  # Exact placement by lon/lat (top-left corner of the box):
+  # coords: [55.0, 30.0]              # Overrides position when set
 
   items:
     # Simple paragraph (no map marker)

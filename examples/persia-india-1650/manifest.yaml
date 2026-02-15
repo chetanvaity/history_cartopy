@@ -10,11 +10,12 @@ metadata:
   graticule:
     labels: true
     lines: true
-  scale_bar: true
+  scale_bar: "bottom-right"
 
 narrative:
-  fontsize: 4
+  fontsize: 5
   width: 0.40
+  coords: [43, 25]
   items:
     - label: false
       text: >
@@ -89,7 +90,8 @@ labels:
 
     # Holy cities — destination for Aurangzeb's largesse
     - name: "Mecca"
-      level: 1
+      level: 2
+      
     - name: "Medina"
       level: 2
 

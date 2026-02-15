@@ -361,7 +361,10 @@ def main():
 
     # Setup Plot
     fig = plt.figure(figsize=figsize)
-    ax = plt.axes(projection=ccrs.PlateCarree())
+    # Small margin so graticule labels are visible and map doesn't overflow
+    margin = 0.03
+    ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin],
+                      projection=ccrs.PlateCarree())
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Background Logic (Example using Cartopy stock images)
@@ -515,7 +518,7 @@ def main():
     # Render narrative box
     logger.info("Rendering narrative box")
     if manifest.get('narrative') and narrative_style:
-        render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
+        render_narrative_box(overlay_ax, fig, ax, manifest, dimensions_px,
                              cartouche_style, narrative_style,
                              title_box_bounds=title_box_bounds)
 

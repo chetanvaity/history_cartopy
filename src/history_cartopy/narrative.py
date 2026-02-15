@@ -142,7 +142,7 @@ def render_narrative_markers(ax, manifest, gazetteer, narrative_style, bg_color,
     logger.info(f"Rendered {rendered} narrative marker(s)")
 
 
-def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
+def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
                          cartouche_style, narrative_style, title_box_bounds=None):
     """
     Render a narrative text box on the overlay axes.
@@ -150,6 +150,7 @@ def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
     Args:
         overlay_ax: Matplotlib axes in 0-1 coordinate space
         fig: Matplotlib figure
+        map_ax: Map axes (geographic, for lon/lat coordinate conversion)
         manifest: Parsed YAML manifest
         dimensions_px: [width, height] in pixels
         cartouche_style: Dict with border styling (shared with title cartouche)
@@ -165,7 +166,11 @@ def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
         return
 
     position = narrative.get('position', 'bottom-left')
-    logger.info(f"Rendering narrative box: {len(items)} items, position={position}")
+    exact_coords = narrative.get('coords')  # [lon, lat] for top-left corner
+    if exact_coords:
+        logger.info(f"Rendering narrative box: {len(items)} items, coords={exact_coords}")
+    else:
+        logger.info(f"Rendering narrative box: {len(items)} items, position={position}")
 
     # Create overlay axes if none provided
     if overlay_ax is None:
@@ -220,12 +225,15 @@ def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
     box_w_dpx = box_width_frac * ax_w_dpx
     text_avail_dpx = box_w_dpx - 2 * border_total_dpx
 
-    # Measure average character width at the body font size
-    sample_text = overlay_ax.text(0, 0, 'x' * 50, fontsize=body_fontsize, fontfamily=font_family)
+    # Measure average character width at the body font size using
+    # representative English text (includes spaces and common letters)
+    sample_str = "the rain in spain falls mainly on the plains here"  # 50 chars
+    sample_text = overlay_ax.text(0, 0, sample_str, fontsize=body_fontsize, fontfamily=font_family)
     sample_bbox = sample_text.get_window_extent(renderer=renderer)
     sample_text.remove()
-    char_width_dpx = sample_bbox.width / 50
-    computed_wrap_width = max(20, int(text_avail_dpx / char_width_dpx))
+    char_width_dpx = sample_bbox.width / len(sample_str)
+    # 5% right-side leeway to prevent overflow from character width variance
+    computed_wrap_width = max(20, int(0.95 * text_avail_dpx / char_width_dpx))
     logger.debug(f"Narrative box: fontsize={body_fontsize}, box_width={box_width_frac:.0%}, wrap_width={computed_wrap_width} chars")
 
     # Build wrapped text for each paragraph
@@ -270,26 +278,38 @@ def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
     box_h = box_h_dpx / ax_h_dpx
 
     # Position the box
-    if 'left' in position:
-        box_x = border_margin_x + inset_x
+    if exact_coords:
+        # Convert lon/lat to overlay axes fraction
+        # map_ax.transData converts data (lon/lat) -> display pixels
+        # overlay_ax.transAxes.inverted() converts display pixels -> axes fraction
+        import cartopy.crs as ccrs
+        lon, lat = exact_coords
+        display_pt = map_ax.transData.transform((lon, lat))
+        ax_frac = overlay_ax.transAxes.inverted().transform(display_pt)
+        box_x = ax_frac[0]
+        box_y = ax_frac[1] - box_h  # coords specify top-left corner
+        logger.debug(f"Narrative coords ({lon}, {lat}) -> axes fraction ({box_x:.3f}, {box_y:.3f})")
     else:
-        box_x = 1 - border_margin_x - inset_x - box_w
+        if 'left' in position:
+            box_x = border_margin_x + inset_x
+        else:
+            box_x = 1 - border_margin_x - inset_x - box_w
 
-    if 'top' in position:
-        box_y = 1 - border_margin_y - inset_y - box_h
-    else:
-        box_y = border_margin_y + inset_y
+        if 'top' in position:
+            box_y = 1 - border_margin_y - inset_y - box_h
+        else:
+            box_y = border_margin_y + inset_y
 
-    # Stack with title cartouche if they share the same corner
-    if title_box_bounds is not None:
-        title_position = manifest['metadata'].get('title_position', 'top-left')
-        if _same_corner(position, title_position):
-            tx, ty, tw, th = title_box_bounds
-            stacking_gap = 0.01
-            if 'top' in position:
-                box_y = ty - stacking_gap - box_h
-            else:
-                box_y = ty + th + stacking_gap
+        # Stack with title cartouche if they share the same corner
+        if title_box_bounds is not None:
+            title_position = manifest['metadata'].get('title_position', 'top-left')
+            if _same_corner(position, title_position):
+                tx, ty, tw, th = title_box_bounds
+                stacking_gap = 0.01
+                if 'top' in position:
+                    box_y = ty - stacking_gap - box_h
+                else:
+                    box_y = ty + th + stacking_gap
 
     # Draw background
     bg_rect = mpatches.FancyBboxPatch(
