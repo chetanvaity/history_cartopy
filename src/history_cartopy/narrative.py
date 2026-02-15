@@ -246,20 +246,20 @@ def render_narrative_box(overlay_ax, fig, manifest, dimensions_px,
     if not paragraphs:
         return
 
-    # Measure text height by creating temporary text objects
+    # Calculate paragraph heights from line count
+    # Using line count * fontsize * linespacing is more reliable than
+    # get_window_extent(), which returns tight ink bounds and accumulates error.
+    linespacing = 1.2  # matplotlib default
+    line_h_dpx = body_fontsize * linespacing * pts2dpx
     para_gap_dpx = body_fontsize * para_gap_factor * pts2dpx
     total_text_h_dpx = 0
     para_heights_dpx = []
 
     for para in paragraphs:
-        t = overlay_ax.text(
-            0, 0, para['text'],
-            fontsize=body_fontsize, fontfamily=font_family,
-        )
-        bbox = t.get_window_extent(renderer=renderer)
-        para_heights_dpx.append(bbox.height)
-        total_text_h_dpx += bbox.height
-        t.remove()
+        num_lines = para['text'].count('\n') + 1
+        h = num_lines * line_h_dpx
+        para_heights_dpx.append(h)
+        total_text_h_dpx += h
 
     # Add gaps between paragraphs
     total_text_h_dpx += para_gap_dpx * (len(paragraphs) - 1)
