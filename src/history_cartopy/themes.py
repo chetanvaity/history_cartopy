@@ -54,7 +54,7 @@ THEMES = {
             'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#555555', 'halo': True},
             'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#888888', 'halo': True},
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#2c5d87', 'halo': False, 'ha': 'center', 'va': 'center'},
-            'region':  {'fontsize': 20, 'family': 'serif', 'color': '#5d4037', 'alpha': 0.2, 'halo': False},
+            'region':  {'fontsize': 20, 'family': 'serif', 'color': '#5d4037', 'alpha': 0.3, 'halo': False},
             'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},

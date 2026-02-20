@@ -125,7 +125,7 @@ labels:
       coords: [74, 25]
       rotation: 0
     - name: "SAFAVID PERSIA"
-      coords: [52, 33]
+      coords: [52, 32]
       rotation: 0
 
 territories:

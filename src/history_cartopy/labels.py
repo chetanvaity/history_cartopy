@@ -322,24 +322,55 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             )
             river_candidates.append(candidate)
 
-    # 3. Collect Regions (fixed positions - no candidates)
+    # 3. Collect Regions as candidates — avoid capital city labels/dots
+    region_style = LABEL_STYLES.get('region', {})
+    region_fontsize = region_style.get('fontsize', 20)
+    region_priority = PRIORITY.get('region', 30)
+    # Candidate shifts in points: center, then N/S/E/W at two tiers
+    region_shifts = [(0, 0), (0, 20), (0, -20), (20, 0), (-20, 0),
+                                      (0, 40), (0, -40), (40, 0), (-40, 0)]
+
     for item in labels.get('regions', []):
         lon, lat = item['coords']
+        name = item['name']
+        display = item.get('display_as', name)
+        rotation = item.get('rotation', 0)
+
         region_data.append({
-            'name': item['name'],
+            'name': name,
+            'display': display,
             'coords': (lon, lat),
-            'rotation': item.get('rotation', 0),
+            'rotation': rotation,
         })
 
-        region_style = LABEL_STYLES.get('region', {})
-        pm.add_label(
-            f"region_{item['name']}",
-            (lon, lat),
-            item['name'],
-            fontsize=region_style.get('fontsize', 20),
-            priority=PRIORITY.get('region', 30),
-            element_type='region'
+        positions = []
+        for x_off_pts, y_off_pts in region_shifts:
+            element = pm.add_label(
+                f"region_{name}_cand",
+                (lon, lat),
+                display,
+                fontsize=region_fontsize,
+                x_offset_pts=x_off_pts,
+                y_offset_pts=y_off_pts,
+                priority=region_priority,
+                element_type='region',
+                ha='center',
+                va='center',
+            )
+            element.id = f"region_{name}"
+            element.ha = 'center'
+            element.va = 'center'
+            pm.remove(f"region_{name}_cand")
+            positions.append(element)
+
+        candidate = LabelCandidate(
+            id=f"region_{name}",
+            element_type='region',
+            priority=region_priority,
+            group=None,
+            positions=positions,
         )
+        city_candidates.append(candidate)
 
     return city_candidates, river_candidates, river_data, region_data, city_render_data
 
@@ -494,10 +525,19 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
                            resolved.text, 'river', rotation=rotation,
                            x_offset=x_offset_pts, y_offset=y_offset_pts)
 
-    # Render Regions (fixed positions)
+    # Render Regions at resolved positions (shifted to avoid capital city labels)
     for region in region_data:
-        apply_text(ax, region['coords'][0], region['coords'][1],
-                   region['name'], 'region', rotation=region['rotation'])
+        label_id = f"region_{region['name']}"
+        if label_id in resolved_positions:
+            resolved = resolved_positions[label_id]
+            x_offset_pts = resolved.offset[0] / dpp
+            y_offset_pts = resolved.offset[1] / dpp
+            apply_text(ax, region['coords'][0], region['coords'][1],
+                       region['display'], 'region', rotation=region['rotation'],
+                       x_offset=x_offset_pts, y_offset=y_offset_pts)
+        else:
+            apply_text(ax, region['coords'][0], region['coords'][1],
+                       region['display'], 'region', rotation=region['rotation'])
 
     # Render standalone icons
     if iconset_path:

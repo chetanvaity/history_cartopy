@@ -565,9 +565,13 @@ class PlacementManager:
             # Skip same group
             if element.group and existing.group and element.group == existing.group:
                 continue
-            # Region labels are semi-transparent decorative text — don't block placement
+            # Region labels are semi-transparent decorative text:
+            # - Non-region elements don't need to avoid regions
+            # - Region elements only avoid capital city dots and labels
             if existing.type == 'region':
-                continue
+                continue  # regions never block other elements
+            if element.type == 'region' and existing.type not in ('city_level_1', 'city_label_1'):
+                continue  # regions only care about capitals
             if self._bbox_intersects(element.bbox, existing.bbox):
                 overlapping.append(existing)
         return overlapping
