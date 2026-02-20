@@ -200,7 +200,9 @@ class PlacementManager:
             y1 = anchor_y - text_height_deg / 2
             y2 = anchor_y + text_height_deg / 2
 
-        bbox = (x1, y1, x2, y2)
+        # Add padding to create breathing room between labels and nearby dots
+        padding_deg = 2 * self.dpp  # 2 points of inter-element breathing room
+        bbox = (x1 - padding_deg, y1 - padding_deg, x2 + padding_deg, y2 + padding_deg)
 
         element = PlacementElement(
             id=id,
@@ -562,6 +564,9 @@ class PlacementManager:
         for existing in self.elements.values():
             # Skip same group
             if element.group and existing.group and element.group == existing.group:
+                continue
+            # Region labels are semi-transparent decorative text — don't block placement
+            if existing.type == 'region':
                 continue
             if self._bbox_intersects(element.bbox, existing.bbox):
                 overlapping.append(existing)

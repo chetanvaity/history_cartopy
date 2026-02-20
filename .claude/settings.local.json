@@ -23,7 +23,8 @@
       "Bash(python:*)",
       "Bash(ls:*)",
       "Bash(wc:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(PYTHONPATH=/home/chetan/source/chetanvaity/history_cartopy python:*)"
     ]
   }
 }
