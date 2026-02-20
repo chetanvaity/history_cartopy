@@ -219,6 +219,7 @@ def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
     inset_y = inset_frac * fig_width_px / fig_height_px
 
     border_total_dpx = (outer_lw + line_gap + inner_lw + padding) * pts2dpx
+    border_total_y_dpx = (outer_lw + line_gap + inner_lw + padding * 0.5) * pts2dpx
 
     # Calculate wrap width from box dimensions
     # Available text width = box width - 2 * border_total
@@ -254,11 +255,21 @@ def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
     if not paragraphs:
         return
 
+    # Reference text (italic, 2pt smaller than body)
+    reference_text = narrative.get('reference', '').strip()
+    ref_fontsize = body_fontsize - 2
+    ref_wrapped = None
+    if reference_text:
+        # Scale wrap width inversely with font size (smaller font = more chars per line)
+        ref_wrap_width = max(20, int(computed_wrap_width * body_fontsize / ref_fontsize))
+        ref_wrapped = textwrap.fill(reference_text, width=ref_wrap_width)
+
     # Calculate paragraph heights from line count
     # Using line count * fontsize * linespacing is more reliable than
     # get_window_extent(), which returns tight ink bounds and accumulates error.
     linespacing = 1.2  # matplotlib default
     line_h_dpx = body_fontsize * linespacing * pts2dpx
+    ref_line_h_dpx = ref_fontsize * linespacing * pts2dpx
     para_gap_dpx = body_fontsize * para_gap_factor * pts2dpx
     total_text_h_dpx = 0
     para_heights_dpx = []
@@ -272,9 +283,16 @@ def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
     # Add gaps between paragraphs
     total_text_h_dpx += para_gap_dpx * (len(paragraphs) - 1)
 
+    # Add reference height (with gap before it)
+    ref_h_dpx = 0
+    if ref_wrapped:
+        ref_num_lines = ref_wrapped.count('\n') + 1
+        ref_h_dpx = ref_num_lines * ref_line_h_dpx
+        total_text_h_dpx += para_gap_dpx + ref_h_dpx
+
     # Box dimensions
     box_w = box_width_frac
-    box_h_dpx = total_text_h_dpx + 2 * border_total_dpx
+    box_h_dpx = total_text_h_dpx + 2 * border_total_y_dpx
     box_h = box_h_dpx / ax_h_dpx
 
     # Position the box
@@ -344,7 +362,7 @@ def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
 
     # Render paragraphs
     text_inset_x = border_total_dpx / ax_w_dpx
-    text_inset_y = border_total_dpx / ax_h_dpx
+    text_inset_y = border_total_y_dpx / ax_h_dpx
 
     cursor_y = box_y + box_h - text_inset_y
     text_x = box_x + text_inset_x
@@ -364,6 +382,20 @@ def render_narrative_box(overlay_ax, fig, map_ax, manifest, dimensions_px,
         cursor_y -= para_heights_dpx[i] / ax_h_dpx
         if i < len(paragraphs) - 1:
             cursor_y -= para_gap_dpx / ax_h_dpx
+
+    # Render reference text (italic, 2pt smaller)
+    if ref_wrapped:
+        cursor_y -= para_gap_dpx / ax_h_dpx
+        overlay_ax.text(
+            text_x, cursor_y, ref_wrapped,
+            fontsize=ref_fontsize,
+            fontfamily=font_family,
+            fontstyle='italic',
+            color=text_color,
+            va='top', ha='left',
+            transform=overlay_ax.transAxes,
+            zorder=8.3,
+        )
 
 
 def _same_corner(pos1, pos2):

@@ -63,9 +63,9 @@ campaigns:
 territories:
   - name: "Qutb Shahi Kingdom"
     file: "golconda-1655.geojson"
-    style: "kingdom3"
+    color: "#666611"
     type: "edge-tint"
   - name: "Bijapur Kingdom"
     file: "bijapur-1655.geojson"
-    style: "kingdom-purple"
+    color: mediumpurple
     type: "edge-tint"

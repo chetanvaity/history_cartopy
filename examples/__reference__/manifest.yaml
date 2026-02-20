@@ -169,19 +169,21 @@ campaigns:
 # =============================================================================
 # Shaded regions from GeoJSON files (in data/polygons/ directory)
 #
-# Render types:
-#   "fuzzy-fill"     - Soft gradient fill
-#   "hatched"        - Diagonal line pattern
-#   "edge-tint"      - Tinted border only
-#   "edge-band"      - Dark border + fading inner ribbon
+# color: Any HTML/W3C color name (e.g. steelblue, goldenrod) or hex (#8B4513)
 #
-# Styles (defined in stylemaps.py):
-#   "empire", "kingdom1", "kingdom2", "kingdom3", "kingdom-purple"
+# type (render algorithm):
+#   "fuzzy-fill"  - Soft gradient fill
+#   "hatched"     - Diagonal line pattern
+#   "edge-tint"   - Tinted border only
+#   "edge-band"   - Dark border + fading inner ribbon (default)
+#
+# alpha: Optional transparency 0–1 (default: 0.4)
 #
 territories:
   - file: "territory.geojson"          # File in data/polygons/
-    style: "empire"
+    color: goldenrod                   # Any HTML/W3C color string or hex
     type: "fuzzy-fill"
+    # alpha: 0.35                      # Optional override (default: 0.4)
 
 # =============================================================================
 # EVENTS (optional)
@@ -263,3 +265,7 @@ narrative:
       location: "CityName"             # Resolved from gazetteer
       text: >
         This paragraph has a circled "2" marker at the named city.
+
+  # Optional: reference line rendered below items (italic, 2pt smaller than fontsize)
+  # Typically used for primary source, author name, or citation.
+  # reference: "Primary source: Jadunath Sarkar, History of Aurangzib (1912)"

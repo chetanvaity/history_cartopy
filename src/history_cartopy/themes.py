@@ -161,39 +161,6 @@ THEMES = {
             'wrap_width': 50,          # characters
         },
 
-        'territory_styles': {
-            'empire': {
-                'facecolor': '#ffcc00',
-                'edgecolor': '#b8860b',
-                'alpha': 0.2,
-                'linewidth': 1.5,
-                'linestyle': '-',
-            },
-            'kingdom1': {
-                'facecolor': '#90ee90',
-                'edgecolor': '#2e8b57',
-                'alpha': 0.1,
-                'linewidth': 1.5,
-            },
-            'kingdom2': {
-                'facecolor': '#add8e6',
-                'edgecolor': '#4682b4',
-                'alpha': 0.4,
-                'linewidth': 1.5,
-            },
-            'kingdom3': {
-                'facecolor': '#666611',
-                'edgecolor': '#ffffff',
-                'alpha': 0.4,
-                'linewidth': 1.5,
-            },
-            'kingdom-purple': {
-                'facecolor': '#5d3fd3',
-                'edgecolor': '#ffffff',
-                'alpha': 0.2,
-                'linewidth': 1.5,
-            },
-        },
     },
 
     # =========================================================================
@@ -340,39 +307,6 @@ THEMES = {
             'wrap_width': 50,
         },
 
-        'territory_styles': {
-            'empire': {
-                'facecolor': '#cccccc',
-                'edgecolor': '#888888',
-                'alpha': 0.25,
-                'linewidth': 1.5,
-                'linestyle': '-',
-            },
-            'kingdom1': {
-                'facecolor': '#dddddd',
-                'edgecolor': '#999999',
-                'alpha': 0.15,
-                'linewidth': 1.5,
-            },
-            'kingdom2': {
-                'facecolor': '#bbbbbb',
-                'edgecolor': '#777777',
-                'alpha': 0.3,
-                'linewidth': 1.5,
-            },
-            'kingdom3': {
-                'facecolor': '#aaaaaa',
-                'edgecolor': '#666666',
-                'alpha': 0.3,
-                'linewidth': 1.5,
-            },
-            'kingdom-purple': {
-                'facecolor': '#c0c0c0',
-                'edgecolor': '#888888',
-                'alpha': 0.2,
-                'linewidth': 1.5,
-            },
-        },
     },
 }
 
@@ -412,8 +346,6 @@ def apply_theme(theme_name):
     sm.CAMPAIGN_STYLES.clear()
     sm.CAMPAIGN_STYLES.update(theme['campaign_styles'])
 
-    sm.TERRITORY_STYLES.clear()
-    sm.TERRITORY_STYLES.update(theme['territory_styles'])
 
     sm.EVENT_CONFIG.clear()
     sm.EVENT_CONFIG.update(theme['event_config'])

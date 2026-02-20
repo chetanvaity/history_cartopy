@@ -102,41 +102,6 @@ CAMPAIGN_STYLES = {
     }
 }
 
-# These define the colours for territories
-# There are 3 "types" as well - fuzzy_fill, hatched, edge-tint (core.py)
-TERRITORY_STYLES = {
-    'empire': {
-        'facecolor': '#ffcc00', # Golden/Imperial
-        'edgecolor': '#b8860b',
-        'alpha': 0.2,           # Keep it faint so terrain/cities show through
-        'linewidth': 1.5,
-        'linestyle': '-',
-    },
-    'kingdom1': {
-        'facecolor': '#90ee90', # Light Green (Qutb Shahi)
-        'edgecolor': '#2e8b57',
-        'alpha': 0.1,
-        'linewidth': 1.5
-    },
-    'kingdom2': {
-        'facecolor': '#add8e6', # Light Blue (Adil Shahi)
-        'edgecolor': '#4682b4',
-        'alpha': 0.4,
-        'linewidth': 1.5
-    },
-    'kingdom3': {
-        'facecolor': '#666611', # Purple?
-        'edgecolor': '#ffffff',
-        'alpha': 0.4,
-        'linewidth': 1.5
-    },
-    'kingdom-purple': {
-        'facecolor': '#5d3fd3', # Purple/Violet
-        'edgecolor': '#ffffff',
-        'alpha': 0.2,
-        'linewidth': 1.5
-    }
-}
 
 TITLE_STYLE = {
     'fontsize': 14,

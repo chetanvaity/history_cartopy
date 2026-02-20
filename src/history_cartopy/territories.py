@@ -4,21 +4,96 @@ import json
 import logging
 import os
 
+import cartopy.crs as ccrs
 from shapely.geometry import shape
 
-from history_cartopy.territory_styles import (
-    apply_fuzzy_fill_territory,
-    apply_hatched_territory,
-    apply_edge_tint_territory,
-    apply_edge_band_territory,
-)
+from history_cartopy.styles import get_deg_per_pt
 
 logger = logging.getLogger('history_cartopy.territories')
 
+DEFAULT_ALPHA = 0.4
+
+
+# =============================================================================
+# Render functions
+# =============================================================================
+
+def _darken_color(color, factor=0.4):
+    """Darken a color towards black. factor=0 gives black, factor=1 gives original."""
+    from matplotlib.colors import to_rgb
+    r, g, b = to_rgb(color)
+    return (r * factor, g * factor, b * factor)
+
+
+def _fuzzy_fill(ax, geometry, color, alpha):
+    dpp = get_deg_per_pt(ax)
+    for pt in [-4, -2, 0, 2, 4]:
+        layer_alpha = alpha / (1 + abs(pt))
+        ax.add_geometries([geometry.buffer(pt * dpp)], ccrs.PlateCarree(),
+                          facecolor=color, alpha=layer_alpha, edgecolor='none', zorder=1)
+
+
+def _hatched(ax, geometry, color, alpha):
+    _fuzzy_fill(ax, geometry, color, alpha)
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none', edgecolor=color,
+                      hatch='////', linewidth=0, alpha=0.3, zorder=2)
+
+
+def _edge_tint(ax, geometry, color, alpha):
+    dpp = get_deg_per_pt(ax)
+    steps = [0, -2, -4, -6]
+    for i in range(len(steps) - 1):
+        outer_geom = geometry.buffer(steps[i] * dpp)
+        inner_geom = geometry.buffer(steps[i + 1] * dpp)
+        ribbon_slice = outer_geom.difference(inner_geom)
+        ax.add_geometries([ribbon_slice], ccrs.PlateCarree(),
+                          facecolor=color, alpha=alpha / (i + 1),
+                          edgecolor='none', zorder=1)
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none', edgecolor=color,
+                      linewidth=0.6, alpha=alpha, zorder=2)
+
+
+def _edge_band(ax, geometry, color, alpha):
+    dpp = get_deg_per_pt(ax)
+    ribbon_steps = [0, -2, -4, -6, -8, -10]
+    num_slices = len(ribbon_steps) - 1
+    for i in range(num_slices):
+        outer_geom = geometry.buffer(ribbon_steps[i] * dpp)
+        inner_geom = geometry.buffer(ribbon_steps[i + 1] * dpp)
+        ribbon_slice = outer_geom.difference(inner_geom)
+        layer_alpha = 0.5 * (1 - i / num_slices)
+        ax.add_geometries([ribbon_slice], ccrs.PlateCarree(),
+                          facecolor=color, alpha=layer_alpha,
+                          edgecolor='none', zorder=1)
+    dark_color = _darken_color(color)
+    ax.add_geometries([geometry], ccrs.PlateCarree(),
+                      facecolor='none', edgecolor=dark_color,
+                      linewidth=1.0, alpha=1.0, zorder=2)
+
+
+_RENDER_FUNCS = {
+    'fuzzy-fill': _fuzzy_fill,
+    'hatched':    _hatched,
+    'edge-tint':  _edge_tint,
+    'edge-band':  _edge_band,
+}
+
+
+# =============================================================================
+# Public entry point
+# =============================================================================
 
 def render_territories(ax, manifest, polygons_dir):
     """
     Render territories from GeoJSON files.
+
+    Each territory entry requires:
+        file:  GeoJSON filename in polygons_dir
+        color: Any HTML/W3C color string (e.g. 'steelblue', '#8B4513')
+        type:  Render algorithm — fuzzy-fill, hatched, edge-tint, edge-band
+        alpha: (optional) Transparency 0–1, default 0.4
 
     Args:
         ax: matplotlib axes
@@ -31,10 +106,17 @@ def render_territories(ax, manifest, polygons_dir):
 
     territories = manifest['territories']
     logger.debug(f"Processing {len(territories)} territories")
+
     for entry in territories:
         file_name = entry.get('file')
-        style_key = entry.get('style', 'kingdom1')
-        render_type = entry.get('type', 'fuzzy_fill')  # Default type
+        color = entry.get('color', 'grey')
+        alpha = entry.get('alpha', DEFAULT_ALPHA)
+        render_type = entry.get('type', 'fuzzy-fill')
+
+        render_fn = _RENDER_FUNCS.get(render_type)
+        if render_fn is None:
+            logger.warning(f"Unknown territory type '{render_type}' for {file_name}")
+            continue
 
         full_path = os.path.join(polygons_dir, file_name)
         if not os.path.exists(full_path):
@@ -45,25 +127,9 @@ def render_territories(ax, manifest, polygons_dir):
             with open(full_path, 'r') as f:
                 data = json.load(f)
 
-            # Strict Enforcement: Assume FeatureCollection (GeoJSON)
-            # This allows a single file to contain multiple "islands" of one kingdom
             for feature in data['features']:
-                # Load the raw geometry
                 raw_geom = shape(feature['geometry'])
-                # TBD: Automatic Smoothening
-                smooth_geom = raw_geom
-
-                # Route to the specialized functions in styles.py
-                if render_type == 'fuzzy-fill':
-                    apply_fuzzy_fill_territory(ax, smooth_geom, style_key)
-                elif render_type == 'hatched':
-                    apply_hatched_territory(ax, smooth_geom, style_key)
-                elif render_type == 'edge-tint':
-                    apply_edge_tint_territory(ax, smooth_geom, style_key)
-                elif render_type == 'edge-band':
-                    apply_edge_band_territory(ax, smooth_geom, style_key)
-                else:
-                    logger.warning(f"Unknown territory type: {render_type}")
+                render_fn(ax, raw_geom, color, alpha)
 
         except (KeyError, TypeError) as e:
             logger.error(f"{file_name} is not a valid GeoJSON FeatureCollection: {e}")
