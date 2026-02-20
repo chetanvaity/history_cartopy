@@ -6,6 +6,7 @@ import os
 import urllib.request
 import zipfile
 import shutil
+from datetime import date
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
@@ -524,8 +525,17 @@ def main():
 
     # Save
     # Don't use bbox_inches='tight' - we want exact dimensions as specified
+    meta = manifest.get('metadata', {})
+    title_parts = [meta.get('title', ''), meta.get('subtitle', '')]
+    png_metadata = {
+        'Title':         ' — '.join(p for p in title_parts if p),
+        'Author':        os.environ.get('USER', os.environ.get('USERNAME', 'unknown')),
+        'Creation Time': date.today().isoformat(),
+        'Software':      'history-cartopy https://github.com/chetanvaity/history-cartopy',
+        'Comment':       f"Generated from {os.path.basename(args.manifest)}",
+    }
     logger.info(f"Saving map to {out_file}")
-    plt.savefig(out_file, dpi=dpi)
+    plt.savefig(out_file, dpi=dpi, metadata=png_metadata)
     logger.info(f"Map saved to {out_file}")
 
 if __name__ == "__main__":
