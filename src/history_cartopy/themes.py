@@ -10,12 +10,21 @@ Usage in manifest:
 
 Usage in code:
     from history_cartopy.themes import apply_theme
-    theme = apply_theme('bw-print')  # mutates stylemaps, returns theme dict
+    theme = apply_theme('bw-print')  # populates live style dicts, returns theme dict
 """
 
 import logging
 
 logger = logging.getLogger('history_cartopy.themes')
+
+# Live style containers — populated by apply_theme() before use.
+# Modules import these directly; apply_theme() mutates them in-place so all
+# importers see the updated values without needing to re-import.
+LABEL_STYLES = {}
+CITY_LEVELS = {}
+CAMPAIGN_STYLES = {}
+EVENT_CONFIG = {}
+TITLE_STYLE = {}
 
 THEMES = {
     # =========================================================================
@@ -54,7 +63,7 @@ THEMES = {
             'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#555555', 'halo': True},
             'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#888888', 'halo': True},
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#2c5d87', 'halo': False, 'ha': 'center', 'va': 'center'},
-            'region':  {'fontsize': 20, 'family': 'serif', 'color': '#5d4037', 'alpha': 0.3, 'halo': False},
+            'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#5d4037', 'alpha': 0.4, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
@@ -200,7 +209,7 @@ THEMES = {
             'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#444444', 'halo': True},
             'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#777777', 'halo': True},
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#444444', 'halo': False, 'ha': 'center', 'va': 'center'},
-            'region':  {'fontsize': 20, 'family': 'serif', 'color': '#333333', 'alpha': 0.2, 'halo': False},
+            'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#333333', 'alpha': 0.2, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
             'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
             'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
@@ -313,17 +322,17 @@ THEMES = {
 
 def apply_theme(theme_name):
     """
-    Apply a theme by mutating the stylemaps module-level dicts in place.
+    Apply a theme by mutating the module-level style dicts in place.
 
-    All modules that imported references to these dicts (labels.py, styles.py,
-    events.py, etc.) will automatically see the updated values.
+    All modules that imported LABEL_STYLES, CITY_LEVELS, etc. from this module
+    automatically see the updated values without re-importing.
 
     Args:
         theme_name: Key in THEMES dict (e.g. 'eighties-textbook', 'bw-print')
 
     Returns:
-        The full theme dict (for reading non-stylemaps settings like
-        'background', 'title_style', 'iconset', etc.)
+        The full theme dict (for settings consumed directly by render_map:
+        'background', 'border_style', 'cartouche_style', 'narrative_style', etc.)
 
     Raises:
         ValueError: If theme_name is not found in THEMES
@@ -335,23 +344,20 @@ def apply_theme(theme_name):
     theme = THEMES[theme_name]
     logger.info(f"Applying theme: {theme_name}")
 
-    import history_cartopy.stylemaps as sm
+    LABEL_STYLES.clear()
+    LABEL_STYLES.update(theme['label_styles'])
 
-    sm.LABEL_STYLES.clear()
-    sm.LABEL_STYLES.update(theme['label_styles'])
+    CITY_LEVELS.clear()
+    CITY_LEVELS.update(theme['city_levels'])
 
-    sm.CITY_LEVELS.clear()
-    sm.CITY_LEVELS.update(theme['city_levels'])
+    CAMPAIGN_STYLES.clear()
+    CAMPAIGN_STYLES.update(theme['campaign_styles'])
 
-    sm.CAMPAIGN_STYLES.clear()
-    sm.CAMPAIGN_STYLES.update(theme['campaign_styles'])
+    EVENT_CONFIG.clear()
+    EVENT_CONFIG.update(theme['event_config'])
 
-
-    sm.EVENT_CONFIG.clear()
-    sm.EVENT_CONFIG.update(theme['event_config'])
-
-    sm.TITLE_STYLE.clear()
-    sm.TITLE_STYLE.update(theme['title_style'])
+    TITLE_STYLE.clear()
+    TITLE_STYLE.update(theme['title_style'])
 
     return theme
 

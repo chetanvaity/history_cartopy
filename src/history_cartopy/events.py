@@ -12,7 +12,7 @@ import os
 from history_cartopy.styles import apply_text
 from history_cartopy.icons import render_icon, DEFAULT_ICONSET
 from history_cartopy.anchor import AnchorCircle
-from history_cartopy.stylemaps import EVENT_CONFIG, LABEL_STYLES
+from history_cartopy.themes import EVENT_CONFIG, LABEL_STYLES
 from history_cartopy.placement import LabelCandidate, PRIORITY
 
 logger = logging.getLogger('history_cartopy.events')

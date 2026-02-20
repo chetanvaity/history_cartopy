@@ -6,7 +6,7 @@ Supports N-waypoint paths with spline or segment interpolation.
 import numpy as np
 import matplotlib.patches as patches
 import cartopy.crs as ccrs
-from history_cartopy.stylemaps import CAMPAIGN_STYLES
+from history_cartopy.themes import CAMPAIGN_STYLES
 from history_cartopy.styles import apply_text, get_deg_per_pt
 
 

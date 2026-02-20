@@ -338,7 +338,7 @@ def main():
     gazetteer, manifest = load_data(gazetteer_path, args.manifest)
     logger.debug(f"Loaded {len(gazetteer)} locations from gazetteer")
 
-    # Apply theme (mutates stylemaps dicts in place)
+    # Apply theme — populates LABEL_STYLES, CITY_LEVELS, etc. in themes module
     theme_name = manifest['metadata'].get('theme', 'eighties-textbook')
     theme = apply_theme(theme_name)
 

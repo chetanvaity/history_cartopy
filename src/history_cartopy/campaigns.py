@@ -3,7 +3,7 @@
 import logging
 import numpy as np
 
-from history_cartopy.stylemaps import CITY_LEVELS, LABEL_STYLES
+from history_cartopy.themes import CITY_LEVELS, LABEL_STYLES
 from history_cartopy.placement import LabelCandidate, ArrowCandidate, PRIORITY
 
 logger = logging.getLogger('history_cartopy.campaigns')

@@ -7,7 +7,7 @@ campaign arrows) terminate on this circle's perimeter, distributed evenly.
 import math
 import numpy as np
 
-from history_cartopy.stylemaps import CITY_LEVELS
+from history_cartopy.themes import CITY_LEVELS
 
 # Default angles for attachment types (degrees, 0 = North/Up, clockwise)
 DEFAULT_ANGLES = {

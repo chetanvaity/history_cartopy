@@ -1,7 +1,7 @@
 import matplotlib.patheffects as PathEffects
 from matplotlib.transforms import offset_copy
 import cartopy.crs as ccrs
-from history_cartopy.stylemaps import *
+from history_cartopy.themes import LABEL_STYLES
 
 def apply_text(ax, lon, lat, text, style_key, color_override=None, rotation=0, x_offset=0, y_offset=0, **kwargs):
     style = LABEL_STYLES.get(style_key, {}).copy()

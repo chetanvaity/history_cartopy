@@ -23,7 +23,7 @@ narrative:
         The fort of Kandahar guards the road to India from the west and to Kabul from the south. In an age where Kabul was part of the Delhi Empire, Kandahar was the indispensible first line of defence. Its position naturally made, Kandahar a bone of contention between the rules of Persia and India.
     - label: false
       text: >
-        In 1649, the Persians had wrested the city from the Mughals under Shah Jahan. Imperial prestige required Kandahar should be won back - and three costly sieges were undertaken by Shah Jahan's sons, but all to no avail. Aurangzeb in 1649, and again in 1652 and Dara Shikoh in 1653. The persian king could rightly boast that the rulers of Delhi knew how to steal a fort by means of gold, but not how to conquer it by strength of arms. Throughout the rest of the century the rumour of a projected invasion from Persia used to throw the court of Delhi into the greatest alarm.
+        In 1649, the Persians had wrested the city from the Mughals under Shah Jahan. Imperial prestige required Kandahar should be won back - and three costly sieges were undertaken by Shah Jahan's sons, but all to no avail. Aurangzeb in 1649, and again in 1652 and Dara Shikoh in 1653. The Persian Shah could rightly boast that the rulers of Delhi knew how to steal a fort by means of gold, but not how to conquer it by strength of arms. Throughout the rest of the century the rumour of a projected invasion from Persia used to throw the court of Delhi into the greatest alarm.
     - label: false
       text: >
         A few years after Aurangzeb was firmly on the throne, an embassy under Tarbiyat Khan - then governer of Multan - was sent to the Persian court in Isfahan. After a year's stay in Persia, Tarbiyat Khan was entrusted with a taunting letter for Aurangzib. In it Shah Abbas writes, "I learn that most of the zamindars of India are in rebellion because their ruler is weak, incompetent and without resources. The chief of them is the impious kafir Shiva, who had long lived in such obscurity that none knew of his name; but now, taking advantage of your lack of means and the retreat of your troops, he has made himself visible like the peak of a mountain, seized many forts, slain or captured many of your soldiers, occupied much of that country, plundered and wasted many of your ports, cities and villages, and finally wants to come to grips with you. You style yourself a World-conqueror (Alamgir) while you have only conquered your father and have gained composure of mind by the murder of your brothers. It is beyond your power to repress lawless men..."
@@ -122,10 +122,10 @@ labels:
  
   regions:
     - name: "MUGHAL EMPIRE"
-      coords: [74, 25]
+      coords: [77, 25]
       rotation: 0
     - name: "SAFAVID PERSIA"
-      coords: [52, 32]
+      coords: [59, 31]
       rotation: 0
 
 territories:
