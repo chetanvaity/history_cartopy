@@ -527,13 +527,24 @@ def main():
     # Don't use bbox_inches='tight' - we want exact dimensions as specified
     meta = manifest.get('metadata', {})
     title_parts = [meta.get('title', ''), meta.get('subtitle', '')]
+    author = os.environ.get('USER', os.environ.get('USERNAME', 'unknown'))
     png_metadata = {
         'Title':         ' — '.join(p for p in title_parts if p),
-        'Author':        os.environ.get('USER', os.environ.get('USERNAME', 'unknown')),
+        'Author':        author,
         'Creation Time': date.today().isoformat(),
         'Software':      'history-cartopy https://github.com/chetanvaity/history-cartopy',
         'Comment':       f"Generated from {os.path.basename(args.manifest)}",
     }
+
+    # Faint watermark — bottom-right, nearly invisible without enhancement
+    fig.text(
+        0.9, 0.1,
+        f"{author} / history_cartopy",
+        ha='right', va='bottom',
+        fontsize=5, color='gray', alpha=0.12,
+        transform=fig.transFigure,
+    )
+
     logger.info(f"Saving map to {out_file}")
     plt.savefig(out_file, dpi=dpi, metadata=png_metadata)
     logger.info(f"Map saved to {out_file}")
