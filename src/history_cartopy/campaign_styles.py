@@ -355,20 +355,18 @@ def apply_campaign_retreat(ax, geometry, label_segment, style, label_above, labe
 
     full_path = geometry['full_path']
 
-    arrow = patches.FancyArrowPatch(
-        path=patches.Path(full_path),
-        color=color,
-        arrowstyle='-|>,head_length=5,head_width=3',
-        linewidth=linewidth,
-        linestyle=':',
-        alpha=alpha,
-        transform=ccrs.PlateCarree(),
-        zorder=4
+    line, = ax.plot(
+        full_path[:, 0], full_path[:, 1],
+        color=color, linewidth=linewidth, alpha=alpha,
+        linestyle=(0, (1, 5)),
+        transform=ccrs.PlateCarree(), zorder=4
     )
-    ax.add_patch(arrow)
+    line.set_dash_capstyle('round')
+
+    dpp = get_deg_per_pt(ax)
+    _render_arrowhead(ax, full_path, color, alpha, dpp, head_length_pts=5, head_width_pts=3)
 
     if arrows == 'all' and len(geometry['segments']) > 1:
-        dpp = get_deg_per_pt(ax)
         for seg in geometry['segments'][:-1]:
             _render_arrowhead(ax, seg['path'], color, alpha, dpp,
                               head_length_pts=4, head_width_pts=2)
@@ -395,7 +393,7 @@ def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_
     full_path = geometry['full_path']
 
     # Shorten path for arrowhead
-    head_len_deg = 12 * dpp
+    head_len_deg = 10 * dpp
     v = full_path[-1] - full_path[-5] if len(full_path) >= 5 else full_path[-1] - full_path[0]
     v_len = np.linalg.norm(v)
     if v_len == 0:
@@ -409,7 +407,7 @@ def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_
     body_path = full_path[:max(cut_idx + 1, 2)]
 
     # Tapering widths
-    widths = np.linspace(0.1, 6.0, len(body_path))
+    widths = np.linspace(0.1, 4.5, len(body_path))
     upper, lower = [], []
 
     for i in range(len(body_path)):
@@ -437,13 +435,13 @@ def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_
     ))
 
     # Draw main arrowhead
-    _render_arrowhead(ax, full_path, color, alpha, dpp)
+    _render_arrowhead(ax, full_path, color, alpha, dpp, head_length_pts=10, head_width_pts=4)
 
     # Additional arrowheads at waypoints if arrows='all'
     if arrows == 'all' and len(geometry['segments']) > 1:
         for seg in geometry['segments'][:-1]:
             _render_arrowhead(ax, seg['path'], color, alpha, dpp,
-                              head_length_pts=8, head_width_pts=4)
+                              head_length_pts=6, head_width_pts=3)
 
     # Labels
     _render_campaign_labels(ax, label_segment, label_above, label_below, color)

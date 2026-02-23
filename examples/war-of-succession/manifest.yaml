@@ -8,7 +8,7 @@ metadata:
   title: "The Mughal War of Succession"
   subtitle: "Triumph of Aurangzib, 1657–1660"
   year: 1658
-  extent: [67, 91, 17, 33]
+  extent: [66, 92, 15, 33]
   resolution: "high"
   output: "war-of-succession.png"
   dimensions: [3600, 2400]
@@ -43,8 +43,6 @@ labels:
       level: 3
     - name: "Ujjain"
       level: 3
-    - name: "Dharmat"
-      level: 3
     - name: "Multan"
       level: 3
     - name: "Jodhpur"
@@ -61,6 +59,8 @@ labels:
       level: 3
     - name: "Rajmahal"
       level: 3
+    - name: "Thatta"
+      level: 3
 
   rivers:
     - name: "Narmada"
@@ -75,10 +75,10 @@ labels:
 
   regions:
     - name: "DECCAN"
-      coords: [79.5, 17.0]
+      coords: [78.5, 17.0]
       rotation: 0
     - name: "BENGAL"
-      coords: [89.5, 22.5]
+      coords: [89.5, 27.0]
       rotation: 0
     - name: "PUNJAB"
       coords: [72.5, 32.0]
@@ -87,7 +87,7 @@ labels:
       coords: [68.0, 25.5]
       rotation: 0
     - name: "RAJPUTANA"
-      coords: [72.0, 24.5]
+      coords: [73.0, 26.5]
       rotation: 0
 
 campaigns:
@@ -97,17 +97,17 @@ campaigns:
 
   # Aurangzib marches north from the Deccan, crosses Narmada, joins Murad
   - name: "Aurangzib: Deccan to Dharmat"
-    path: ["Aurangabad", "Burhanpur", "Akbarpur", "Dharmat"]
+    path: ["Aurangabad", "Burhanpur", "Dharmat"]
     style: "power"
     color: "#8B0000"
     label_above: "Aurangzib"
-    label_below: "Feb–Apr 1658"
+    label_below: "Feb 1658"
     rad: 0.2
 
   # After Dharmat victory, Aurangzib flanks Dara's Chambal line and
   # reaches the decisive field of Samugarh
   - name: "Aurangzib: Dharmat to Samugarh"
-    path: ["Dharmat", "Gwalior", "Bhadaoli", "Samugarh"]
+    path: ["Dharmat", "Gwalior", "Samugarh"]
     style: "power"
     color: "#8B0000"
     rad: 0.2
@@ -116,7 +116,7 @@ campaigns:
   # Starts at Agra (Samugarh is effectively the same point at this scale)
   - name: "Aurangzib: Agra to coronation at Delhi"
     path: ["Agra", "Delhi"]
-    style: "power"
+    style: "march"
     color: "#8B0000"
     label_below: "Jun–Jul 1658"
     rad: 0.3
@@ -126,7 +126,7 @@ campaigns:
   # -----------------------------------------------------------------------
 
   - name: "Murad Bakhsh: Gujarat to junction"
-    path: ["Ahmedabad", "Dipalpur"]
+    path: ["Ahmedabad", "Dharmat"]
     style: "march"
     color: "#CC5500"
     label_above: "Murad Bakhsh"
@@ -140,9 +140,9 @@ campaigns:
     path: ["Agra", "Dharmat"]
     style: "power"
     color: "#1A4F8A"
-    label_above: "Jaswant Singh (imperial)"
+    label_above: "Jaswant Singh"
     label_below: "Feb 1658"
-    rad: 0.4
+    rad: -0.4
 
   # -----------------------------------------------------------------------
   # DARA SHUKOH — FLIGHT ACROSS INDIA
@@ -230,9 +230,9 @@ narrative:
     - label: false
       text: >
         Aurangzib, the ablest general, allied with Murad Bakhsh and drove north from the
-        Deccan. He shattered Dara's advance guard at Dharmat (April 1658) and routed Dara
+        Deccan. He shattered Dara's advance guard at Dharmat near Ujjain (April 1658) and routed Dara
         himself at Samugarh. Agra fell; Shah Jahan was imprisoned in the Fort; Aurangzib
-        was crowned Alamgir at Delhi in July 1658.
+        crowned himself at Delhi in July 1658.
     - label: false
       text: >
         Shuja proclaimed himself emperor in Bengal and pushed west twice, but was beaten
@@ -248,7 +248,7 @@ narrative:
         Murad Bakhsh, having served as Aurangzib's instrument, was quietly imprisoned
         and executed in 1661. Aurangzib — now Alamgir, Conqueror of the World —
         reigned alone for 49 years.
-  reference: "Primary source: Jadunath Sarkar, History of Aurangzib (1912)"
+  reference: "Jadunath Sarkar, History of Aurangzib"
 
 events:
   - text: "Dharmat"
@@ -275,8 +275,3 @@ events:
     subtext: "14 Mar 1659"
     coords: [74.62, 26.30]
     icon: "battle"
-
-  - text: "Aurangzib crowned Alamgir"
-    subtext: "21 Jul 1658"
-    location: "Delhi"
-

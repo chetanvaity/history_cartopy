@@ -313,6 +313,39 @@ class PlacementManager:
         self.elements[id] = element
         return element
 
+    def add_fixed_rect(
+        self,
+        id: str,
+        bbox: tuple,
+        element_type: str = 'map_box',
+        priority: int = 95,
+    ) -> PlacementElement:
+        """
+        Register a fixed blocked rectangle directly in lon/lat degrees.
+
+        Used to register the title cartouche and narrative box as blockers
+        before greedy label resolution, so region labels avoid them.
+
+        Args:
+            id: Unique identifier
+            bbox: (x1, y1, x2, y2) in degrees (lon/lat)
+            element_type: Type string; use 'map_box' to trigger region-only blocking
+            priority: Stored as metadata (not used for resolution ordering)
+        """
+        cx = (bbox[0] + bbox[2]) / 2
+        cy = (bbox[1] + bbox[3]) / 2
+        element = PlacementElement(
+            id=id,
+            type=element_type,
+            coords=(cx, cy),
+            offset=(0, 0),
+            bbox=bbox,
+            priority=priority,
+        )
+        self.elements[id] = element
+        logger.debug(f"Added fixed rect '{id}' type={element_type} bbox={bbox}")
+        return element
+
     def add_campaign_label(
         self,
         id: str,
@@ -567,11 +600,14 @@ class PlacementManager:
                 continue
             # Region labels are semi-transparent decorative text:
             # - Non-region elements don't need to avoid regions
-            # - Region elements only avoid capital city dots and labels
+            # - Region elements only avoid capital city dots/labels and map boxes
+            # map_box (title cartouche, narrative box) only blocks regions, not other labels
             if existing.type == 'region':
                 continue  # regions never block other elements
-            if element.type == 'region' and existing.type not in ('city_level_1', 'city_label_1'):
-                continue  # regions only care about capitals
+            if element.type != 'region' and existing.type == 'map_box':
+                continue  # map_box only matters for region placement
+            if element.type == 'region' and existing.type not in ('city_level_1', 'city_label_1', 'map_box'):
+                continue  # regions avoid capitals and map boxes
             if self._bbox_intersects(element.bbox, existing.bbox):
                 overlapping.append(existing)
         return overlapping

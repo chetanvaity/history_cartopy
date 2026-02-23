@@ -8,7 +8,7 @@ from history_cartopy.core import get_offsets
 from history_cartopy.styles import apply_text
 from history_cartopy.anchor import AnchorCircle
 from history_cartopy.icons import render_icon, DEFAULT_ICONSET
-from history_cartopy.themes import CITY_LEVELS, LABEL_STYLES
+from history_cartopy.themes import CITY_LEVELS, LABEL_STYLES, ICONSET
 from history_cartopy.placement import LabelCandidate, PRIORITY
 
 logger = logging.getLogger('history_cartopy.labels')
@@ -48,7 +48,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
     pm = placement_manager
 
     # Resolve iconset path
-    iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
+    iconset_name = manifest.get('metadata', {}).get('iconset') or ICONSET.get('path', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
     city_candidates = []
@@ -397,7 +397,7 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
     from history_cartopy.styles import get_deg_per_pt
 
     # Resolve iconset path
-    iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
+    iconset_name = manifest.get('metadata', {}).get('iconset') or ICONSET.get('path', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
     # Render Cities

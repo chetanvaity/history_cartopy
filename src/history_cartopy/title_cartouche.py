@@ -14,6 +14,60 @@ logger = logging.getLogger('history_cartopy.title_cartouche')
 # Border width in pixels (must match border_styles.BORDER_WIDTH_PX)
 BORDER_WIDTH_PX = 100
 
+# Map axes fill fraction (= 1 - 2 * margin, where margin=0.03 in render_map.py)
+_MAP_AXES_FILL = 0.94
+_DPI = 300  # hardcoded DPI used by render_map.py
+
+
+def estimate_title_box_fracs(manifest, dimensions_px, cartouche_style):
+    """
+    Estimate title cartouche bounds in overlay-axes fractions (0–1 space).
+
+    Pure computation — no matplotlib renderer needed. Uses the same
+    fontsize * 0.6 character-width approximation as placement.py::add_label().
+
+    Returns:
+        (box_x, box_y, box_w, box_h) in overlay fractions, or None if no title.
+    """
+    title = manifest['metadata'].get('title', '')
+    if not title:
+        return None
+    subtitle = manifest['metadata'].get('subtitle', '')
+    position = manifest['metadata'].get('title_position', 'top-left')
+
+    outer_lw = cartouche_style['outer_line_width']
+    inner_lw = cartouche_style['inner_line_width']
+    line_gap  = cartouche_style['line_gap']
+    padding   = cartouche_style['padding']
+    tf = cartouche_style['title_fontsize']
+    sf = cartouche_style['subtitle_fontsize']
+
+    fig_w, fig_h = dimensions_px
+    pts2dpx = _DPI / 72.0
+    ax_w = fig_w * _MAP_AXES_FILL
+    ax_h = fig_h * _MAP_AXES_FILL
+
+    title_w_dpx    = len(title) * tf * 0.6 * pts2dpx
+    subtitle_w_dpx = len(subtitle) * sf * 0.6 * pts2dpx if subtitle else 0
+    text_w_dpx = max(title_w_dpx, subtitle_w_dpx)
+    text_h_dpx = tf * 1.2 * pts2dpx
+    if subtitle:
+        text_h_dpx += (sf * 1.2 + 2) * pts2dpx
+
+    border_dpx = (outer_lw + line_gap + inner_lw + padding) * pts2dpx
+    box_w = (text_w_dpx + 2 * border_dpx) / ax_w
+    box_h = (text_h_dpx + 2 * border_dpx) / ax_h
+
+    has_border = manifest['metadata'].get('border_style') is not None
+    bm_x = BORDER_WIDTH_PX / fig_w if has_border else 0
+    bm_y = BORDER_WIDTH_PX / fig_h if has_border else 0
+    ins_x = 0.03
+    ins_y = 0.03 * fig_w / fig_h
+
+    box_x = bm_x + ins_x if 'left' in position else 1 - bm_x - ins_x - box_w
+    box_y = 1 - bm_y - ins_y - box_h if 'top' in position else bm_y + ins_y
+    return (box_x, box_y, box_w, box_h)
+
 
 def render_title_cartouche(overlay_ax, fig, manifest, dimensions_px, cartouche_style):
     """

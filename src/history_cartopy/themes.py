@@ -25,6 +25,7 @@ CITY_LEVELS = {}
 CAMPAIGN_STYLES = {}
 EVENT_CONFIG = {}
 TITLE_STYLE = {}
+ICONSET = {}  # {'path': 'iconsets/bwicons'}
 
 THEMES = {
     # =========================================================================
@@ -35,7 +36,7 @@ THEMES = {
     'eighties-textbook': {
         'background': 'high',
         'border_style': 'double-black',
-        'iconset': 'iconsets/default',
+        'iconset': 'iconsets/bwicons',
 
         'cartouche_style': {
             'outer_line_width': 3,       # points
@@ -58,16 +59,16 @@ THEMES = {
         },
 
         'label_styles': {
-            'city1':   {'fontsize': 10, 'weight': 'bold', 'family': 'serif', 'color': 'black', 'halo': True},
+            'city1':   {'fontsize': 9, 'weight': 'bold', 'family': 'serif', 'color': 'black', 'halo': True},
             'city2':   {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
             'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#555555', 'halo': True},
             'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#888888', 'halo': True},
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#2c5d87', 'halo': False, 'ha': 'center', 'va': 'center'},
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#5d4037', 'alpha': 0.4, 'halo': False, 'ha': 'center', 'va': 'center'},
-            'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
-            'campaign_below': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
-            'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
-            'event_subtext': {'fontsize': 7, 'weight': 'normal', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
+            'campaign_above': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
+            'campaign_below': {'fontsize': 5, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
+            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
+            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
         },
 
         'event_config': {
@@ -173,16 +174,16 @@ THEMES = {
         },
 
         'label_styles': {
-            'city1':   {'fontsize': 10, 'weight': 'bold', 'family': 'serif', 'color': 'black', 'halo': True},
+            'city1':   {'fontsize': 9, 'weight': 'bold', 'family': 'serif', 'color': 'black', 'halo': True},
             'city2':   {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
             'city3':   {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#444444', 'halo': True},
             'modern_place': {'fontsize': 7, 'style': 'italic', 'weight': 'normal', 'family': 'sans-serif', 'color': '#777777', 'halo': True},
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#444444', 'halo': False, 'ha': 'center', 'va': 'center'},
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#333333', 'alpha': 0.2, 'halo': False, 'ha': 'center', 'va': 'center'},
-            'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
-            'campaign_below': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
-            'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
-            'event_subtext': {'fontsize': 7, 'weight': 'normal', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
+            'campaign_above': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
+            'campaign_below': {'fontsize': 5, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
+            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
+            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
         },
 
         'event_config': {
@@ -296,6 +297,9 @@ def apply_theme(theme_name):
 
     TITLE_STYLE.clear()
     TITLE_STYLE.update(theme['title_style'])
+
+    ICONSET.clear()
+    ICONSET['path'] = theme.get('iconset', 'iconsets/default')
 
     return theme
 

@@ -9,13 +9,15 @@ from history_cartopy.placement import LabelCandidate, ArrowCandidate, PRIORITY
 logger = logging.getLogger('history_cartopy.campaigns')
 
 
-def _get_city_level_lookup(manifest):
-    """Build a dict mapping city names to their levels from manifest."""
+def _get_city_level_lookup(manifest, event_levels=None):
+    """Build a dict mapping city/event names to their levels from manifest."""
     lookup = {}
     for item in manifest.get('labels', {}).get('cities', []):
         name = item.get('name')
         if name:
             lookup[name] = item.get('level', 2)
+    if event_levels:
+        lookup.update(event_levels)
     return lookup
 
 
@@ -34,7 +36,7 @@ def _offset_point_toward(p_from, p_toward, offset_deg):
     return (p1 + unit * offset_deg).tolist()
 
 
-def collect_arrow_candidates(gazetteer, manifest, placement_manager):
+def collect_arrow_candidates(gazetteer, manifest, placement_manager, event_levels=None):
     """
     Generate arrow candidates at multiple gap distances.
 
@@ -53,7 +55,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager):
     from history_cartopy.campaign_styles import _get_multistop_geometry
 
     pm = placement_manager
-    city_levels = _get_city_level_lookup(manifest)
+    city_levels = _get_city_level_lookup(manifest, event_levels=event_levels)
     dpp = pm.dpp
 
     gap_multipliers = [2.0, 3.0, 4.0]  # Try in order: shortest first

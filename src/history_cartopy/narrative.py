@@ -17,6 +17,10 @@ logger = logging.getLogger('history_cartopy.narrative')
 # Border width in pixels (must match border_styles.BORDER_WIDTH_PX)
 BORDER_WIDTH_PX = 100
 
+# Map axes fill fraction (= 1 - 2 * margin, where margin=0.03 in render_map.py)
+_MAP_AXES_FILL = 0.94
+_DPI = 300  # hardcoded DPI used by render_map.py
+
 
 def _resolve_item_coords(item, gazetteer):
     """Resolve lon/lat for a narrative item from coords or location."""
@@ -405,3 +409,85 @@ def _same_corner(pos1, pos2):
         h = 'left' if 'left' in p else 'right'
         return (v, h)
     return normalize(pos1) == normalize(pos2)
+
+
+def estimate_narrative_box_fracs(manifest, dimensions_px, cartouche_style,
+                                   narrative_style, title_box_fracs=None):
+    """
+    Estimate narrative box bounds in overlay-axes fractions (0–1 space).
+
+    Pure computation — no matplotlib renderer needed. Uses the same
+    fontsize * 0.6 character-width approximation as placement.py::add_label().
+
+    Returns:
+        (box_x, box_y, box_w, box_h) in overlay fractions, or None if no narrative
+        or if exact_coords is used (requires coordinate transform).
+    """
+    narrative = manifest.get('narrative')
+    if not narrative or not narrative.get('items'):
+        return None
+    if narrative.get('coords'):
+        return None  # exact_coords: can't estimate without cartopy transform
+
+    position      = narrative.get('position', 'bottom-left')
+    outer_lw      = cartouche_style['outer_line_width']
+    inner_lw      = cartouche_style['inner_line_width']
+    line_gap      = cartouche_style['line_gap']
+    padding       = cartouche_style['padding']
+    body_fs       = narrative.get('fontsize', narrative_style.get('body_fontsize', 8))
+    box_w_frac    = narrative.get('width', narrative_style.get('box_width_frac', 0.30))
+    para_gap_fac  = narrative_style.get('para_gap_factor', 0.8)
+
+    fig_w, fig_h = dimensions_px
+    pts2dpx      = _DPI / 72.0
+    ax_w         = fig_w * _MAP_AXES_FILL
+    ax_h         = fig_h * _MAP_AXES_FILL
+    border_dpx   = (outer_lw + line_gap + inner_lw + padding) * pts2dpx
+    border_y_dpx = (outer_lw + line_gap + inner_lw + padding * 0.5) * pts2dpx
+    text_avail   = box_w_frac * ax_w - 2 * border_dpx
+    char_w       = body_fs * 0.6 * pts2dpx
+    wrap_w       = max(20, int(0.95 * text_avail / char_w))
+    line_h       = body_fs * 1.2 * pts2dpx
+    para_gap     = body_fs * para_gap_fac * pts2dpx
+
+    total_h = 0
+    n_paras = 0
+    for item in narrative.get('items', []):
+        text = item.get('text', '').strip()
+        if not text:
+            continue
+        label = item.get('label')
+        prefix = f"{label}. " if (label and label is not False) else ""
+        wrapped = textwrap.fill(prefix + text, width=wrap_w)
+        total_h += (wrapped.count('\n') + 1) * line_h
+        n_paras += 1
+    if n_paras > 1:
+        total_h += para_gap * (n_paras - 1)
+
+    ref = narrative.get('reference', '').strip()
+    if ref:
+        ref_fs  = body_fs - 2
+        ref_w   = max(20, int(wrap_w * body_fs / ref_fs))
+        ref_txt = textwrap.fill(ref, width=ref_w)
+        total_h += para_gap + (ref_txt.count('\n') + 1) * ref_fs * 1.2 * pts2dpx
+
+    box_h = (total_h + 2 * border_y_dpx) / ax_h
+    box_w = box_w_frac
+
+    has_border = manifest['metadata'].get('border_style') is not None
+    bm_x = BORDER_WIDTH_PX / fig_w if has_border else 0
+    bm_y = BORDER_WIDTH_PX / fig_h if has_border else 0
+    ins_x = 0.03
+    ins_y = 0.03 * fig_w / fig_h
+
+    box_x = bm_x + ins_x if 'left' in position else 1 - bm_x - ins_x - box_w
+    box_y = 1 - bm_y - ins_y - box_h if 'top' in position else bm_y + ins_y
+
+    if title_box_fracs is not None:
+        title_pos = manifest['metadata'].get('title_position', 'top-left')
+        if _same_corner(position, title_pos):
+            tx, ty, tw, th = title_box_fracs
+            gap = 0.01
+            box_y = ty - gap - box_h if 'top' in position else ty + th + gap
+
+    return (box_x, box_y, box_w, box_h)

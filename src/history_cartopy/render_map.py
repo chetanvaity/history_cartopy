@@ -19,13 +19,14 @@ from history_cartopy.campaigns import (
 )
 from history_cartopy.territories import render_territories
 from history_cartopy.border_styles import render_border
-from history_cartopy.title_cartouche import render_title_cartouche
+from history_cartopy.title_cartouche import render_title_cartouche, estimate_title_box_fracs
 from history_cartopy.narrative import (
-    collect_narrative_markers, render_narrative_markers, render_narrative_box
+    collect_narrative_markers, render_narrative_markers, render_narrative_box,
+    estimate_narrative_box_fracs,
 )
 from history_cartopy.placement import PlacementManager
 from history_cartopy.styles import get_deg_per_pt
-from history_cartopy.themes import apply_theme
+from history_cartopy.themes import apply_theme, CITY_LEVELS, EVENT_CONFIG
 
 # Configure logging
 logging.basicConfig(
@@ -310,6 +311,7 @@ def main():
     parser.add_argument('--output', help='Override output filename')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--debug-river-candidates', action='store_true', help='Render all river label candidates')
+    parser.add_argument('--debug-anchor-circles', action='store_true', help='Render anchor circles for all cities and events')
 
     args = parser.parse_args()
 
@@ -450,10 +452,15 @@ def main():
         gazetteer, manifest, pm, data_dir=data_dir
     )
 
+    # Auto-register all events in gazetteer so campaign paths can reference them by text
+    for ev in event_render_data:
+        gazetteer[ev['event_id']] = list(ev['coords'])
+    event_levels = {ev['event_id']: 2 for ev in event_render_data}
+
     # Collect arrow candidates (with 2x, 3x, 4x gap variants)
     logger.info("Collecting campaign arrow candidates")
     arrow_candidates, campaign_render_data = collect_arrow_candidates(
-        gazetteer, manifest, pm
+        gazetteer, manifest, pm, event_levels=event_levels
     )
 
     # Phase 2a: RESOLVE ARROWS
@@ -471,6 +478,35 @@ def main():
     # Phase 2b: COLLECT CAMPAIGN LABELS (after arrows resolved)
     logger.info("Collecting campaign labels from resolved arrows")
     campaign_candidates = collect_campaign_labels(manifest, resolved_arrows, pm)
+
+    # Register title cartouche and narrative box as map_box blockers so
+    # region labels avoid them during greedy resolution (Phase 2c).
+    # Uses pure approximation (fontsize * 0.6) — no renderer needed.
+    west, east, south, north = extent
+    lon_span = east - west
+    lat_span = north - south
+
+    def _frac_to_bbox(bx, by, bw, bh):
+        return (west + bx * lon_span, south + by * lat_span,
+                west + (bx + bw) * lon_span, south + (by + bh) * lat_span)
+
+    _cartouche_style = theme.get('cartouche_style', {})
+    _narrative_style = theme.get('narrative_style', {})
+
+    if manifest['metadata'].get('title') and _cartouche_style:
+        _tb = estimate_title_box_fracs(manifest, dimensions_px, _cartouche_style)
+        if _tb:
+            pm.add_fixed_rect('map_title_box', _frac_to_bbox(*_tb))
+            logger.debug(f"Registered map_title_box blocker: fracs={_tb}")
+
+    if manifest.get('narrative') and _narrative_style and _cartouche_style:
+        _tb_fracs = estimate_title_box_fracs(manifest, dimensions_px, _cartouche_style) \
+                    if manifest['metadata'].get('title') else None
+        _nb = estimate_narrative_box_fracs(manifest, dimensions_px, _cartouche_style,
+                                            _narrative_style, _tb_fracs)
+        if _nb:
+            pm.add_fixed_rect('map_narrative_box', _frac_to_bbox(*_nb))
+            logger.debug(f"Registered map_narrative_box blocker: fracs={_nb}")
 
     # Phase 2c: RESOLVE ALL LABELS
     logger.info("Resolving label overlaps")
@@ -491,6 +527,29 @@ def main():
     logger.info("Rendering events")
     render_events_resolved(ax, event_render_data, resolved_positions,
                            data_dir=data_dir, manifest=manifest)
+
+    # Debug: render anchor circles for all cities and events
+    if args.debug_anchor_circles:
+        import matplotlib.patches as mpatches
+        for city in city_render_data:
+            level = city['level']
+            radius_deg = CITY_LEVELS.get(level, CITY_LEVELS[2])['anchor_radius'] * dpp
+            lon, lat = city['coords']
+            ax.add_patch(mpatches.Circle(
+                (lon, lat), radius=radius_deg,
+                facecolor='none', edgecolor='#cc0000',
+                linewidth=0.7, linestyle='--', alpha=0.7,
+                transform=ccrs.PlateCarree(), zorder=10
+            ))
+        for ev in event_render_data:
+            radius_deg = EVENT_CONFIG['anchor_radius'] * dpp
+            lon, lat = ev['coords']
+            ax.add_patch(mpatches.Circle(
+                (lon, lat), radius=radius_deg,
+                facecolor='none', edgecolor='#0055cc',
+                linewidth=0.7, linestyle='--', alpha=0.7,
+                transform=ccrs.PlateCarree(), zorder=10
+            ))
 
     # Render narrative markers on map
     logger.info("Rendering narrative markers")

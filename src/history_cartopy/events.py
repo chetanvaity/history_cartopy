@@ -12,7 +12,7 @@ import os
 from history_cartopy.styles import apply_text
 from history_cartopy.icons import render_icon, DEFAULT_ICONSET
 from history_cartopy.anchor import AnchorCircle
-from history_cartopy.themes import EVENT_CONFIG, LABEL_STYLES
+from history_cartopy.themes import EVENT_CONFIG, LABEL_STYLES, ICONSET
 from history_cartopy.placement import LabelCandidate, PRIORITY
 
 logger = logging.getLogger('history_cartopy.events')
@@ -37,7 +37,7 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
     pm = placement_manager
 
     # Resolve iconset path
-    iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
+    iconset_name = manifest.get('metadata', {}).get('iconset') or ICONSET.get('path', DEFAULT_ICONSET)
     iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
 
     event_candidates = []
@@ -167,7 +167,7 @@ def render_events_resolved(ax, event_render_data, resolved_positions, data_dir=N
 
     # Resolve iconset path
     if manifest:
-        iconset_name = manifest.get('metadata', {}).get('iconset', DEFAULT_ICONSET)
+        iconset_name = manifest.get('metadata', {}).get('iconset') or ICONSET.get('path', DEFAULT_ICONSET)
         iconset_path = os.path.join(data_dir, iconset_name) if data_dir else None
     else:
         iconset_path = None
