@@ -145,16 +145,18 @@ labels:
 # =============================================================================
 # Arrows showing troop movements between locations.
 #
-# Styles (defined in stylemaps.py):
-#   "invasion" - Bold red solid arrow (main force)
-#   "power"    - Similar to invasion
-#   "boring"   - Dashed orange arrow (secondary movement)
-#   "retreat"  - Grey dash-dot arrow
+# Styles (defined in themes.py):
+#   "power"   - Tapered band with triangular head (main advance)
+#   "march"   - Thin solid line (secondary / supporting movement)
+#   "retreat" - Thin solid line, lighter (withdrawal or flight)
+#
+# All styles accept a color: override for per-campaign colour.
 #
 campaigns:
   - name: "Campaign Name"              # For your reference (not displayed)
     path: ["StartCity", "EndCity"]     # City names from gazetteer
-    style: "invasion"                  # Arrow style
+    style: "power"                     # Arrow style: power, march, or retreat
+    color: "#8B0000"                   # Optional: override style's default color
     label_above: "Commander Name"      # Text above arrow (optional)
     label_below: "Date"                # Text below arrow (optional)
     rad: 0.3                           # Curvature (optional, default 0.3)
@@ -208,6 +210,7 @@ events:
 
   # Event with icon (icon centered at location, text placed around it)
   - text: "Battle Name"
+    subtext: "15 Apr 1658"             # Optional: second line in smaller font (dates, notes)
     location: "CityName"
     icon: "battle"                     # Icon from iconset (centered at location)
 

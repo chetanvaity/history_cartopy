@@ -103,7 +103,8 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager):
         # 3. Extract parameters
         label_above = item.get('label_above', "")
         label_below = item.get('label_below', "")
-        style_key = item.get('style', 'invasion')
+        style_key = item.get('style', 'power')
+        color_override = item.get('color', None)
         path_type = item.get('path_type', 'spline')
         arrows = item.get('arrows', 'final')
         curvature = item.get('rad', 0.0)
@@ -160,6 +161,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager):
             'label_above': label_above,
             'label_below': label_below,
             'style_key': style_key,
+            'color_override': color_override,
             'arrows': arrows,
             'group': campaign_group,
         })
@@ -325,6 +327,7 @@ def render_campaigns_resolved(ax, campaign_render_data, resolved_positions):
         label_above = campaign['label_above']
         label_below = campaign['label_below']
         style_key = campaign['style_key']
+        color_override = campaign.get('color_override')
         arrows = campaign['arrows']
 
         # Determine which segment to use for labels
@@ -388,4 +391,5 @@ def render_campaigns_resolved(ax, campaign_render_data, resolved_positions):
             label_below=render_below,
             style_key=style_key,
             arrows=arrows,
+            color_override=color_override,
         )

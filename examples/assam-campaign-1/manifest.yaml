@@ -57,32 +57,32 @@ campaigns:
   # Phase 1: Dacca to Koch Bihar
   - name: "Phase 1"
     path: ["Dacca", [89.5, 25.0], "Koch Bihar"]
-    style: "invasion"
+    style: "power"
     label_above: "Mir Jumla"
     label_below: "Nov 1661"
 
   # Phase 2: Koch Bihar to Jogighopa
   - name: "Phase 2a"
     path: ["Koch Bihar", "Jogighopa"]
-    style: "invasion"
+    style: "power"
     label_below: "Jan 1662"
 
   # Phase 3: Jogighopa to Gauhati
   - name: "Phase 2b"
     path: ["Jogighopa", "Gauhati"]
-    style: "invasion"
+    style: "power"
     rad: -0.2
 
   # Phase 4: Gauhati to Simlagarh
   - name: "Phase 3a"
     path: ["Gauhati", "Simlagarh"]
-    style: "invasion"
+    style: "power"
     label_below: "Feb"
 
   # Phase 5: Simlagarh to Garhgaon
   - name: "Phase 3b"
     path: ["Simlagarh", "Garhgaon"]
-    style: "invasion"
+    style: "power"
     label_below: "Mar"
 
 # events:

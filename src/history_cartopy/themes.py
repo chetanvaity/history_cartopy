@@ -65,8 +65,9 @@ THEMES = {
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#2c5d87', 'halo': False, 'ha': 'center', 'va': 'center'},
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#5d4037', 'alpha': 0.4, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
-            'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
+            'campaign_below': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
+            'event_subtext': {'fontsize': 7, 'weight': 'normal', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
         },
 
         'event_config': {
@@ -109,51 +110,19 @@ THEMES = {
         },
 
         'campaign_styles': {
-            'invasion': {
+            'power': {
                 'color': '#8b0000',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
                 'alpha': 0.5,
-                'type': 'power',
             },
-            'invasion-orange': {
-                'color': '#E97451',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
-                'alpha': 0.5,
-                'type': 'power',
-            },
-            'invasion-black': {
-                'color': '#000000',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
-                'alpha': 0.5,
-                'type': 'power',
-            },
-            'boring': {
+            'march': {
                 'color': '#d2691e',
                 'linewidth': 1.5,
-                'linestyle': '--',
-                'arrowstyle': '-|>',
                 'alpha': 0.7,
-                'type': 'simple',
             },
             'retreat': {
                 'color': '#4a4a4a',
-                'linewidth': 1.8,
-                'linestyle': (0, (3, 5, 1, 5)),
-                'arrowstyle': 'simple,tail_width=0.2',
+                'linewidth': 1.5,
                 'alpha': 0.6,
-            },
-            'siege-harrasment': {
-                'color': 'black',
-                'linewidth': 3,
-                'linestyle': ':',
-                'arrowstyle': '-',
-                'alpha': 0.9,
             },
         },
 
@@ -211,8 +180,9 @@ THEMES = {
             'river':   {'fontsize': 6, 'style': 'italic', 'family': 'serif', 'color': '#444444', 'halo': False, 'ha': 'center', 'va': 'center'},
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#333333', 'alpha': 0.2, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 9, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
-            'campaign_below': {'fontsize': 8, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
+            'campaign_below': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
             'event_text':  {'fontsize': 9, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
+            'event_subtext': {'fontsize': 7, 'weight': 'normal', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
         },
 
         'event_config': {
@@ -255,51 +225,19 @@ THEMES = {
         },
 
         'campaign_styles': {
-            'invasion': {
+            'power': {
                 'color': '#333333',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
                 'alpha': 0.6,
-                'type': 'power',
             },
-            'invasion-orange': {
-                'color': '#555555',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
-                'alpha': 0.6,
-                'type': 'power',
-            },
-            'invasion-black': {
-                'color': '#000000',
-                'linewidth': 2.5,
-                'linestyle': '-',
-                'arrowstyle': 'fancy,head_length=5.5,head_width=5.5',
-                'alpha': 0.6,
-                'type': 'power',
-            },
-            'boring': {
+            'march': {
                 'color': '#666666',
                 'linewidth': 1.5,
-                'linestyle': '--',
-                'arrowstyle': '-|>',
                 'alpha': 0.7,
-                'type': 'simple',
             },
             'retreat': {
                 'color': '#888888',
-                'linewidth': 1.8,
-                'linestyle': (0, (3, 5, 1, 5)),
-                'arrowstyle': 'simple,tail_width=0.2',
+                'linewidth': 1.5,
                 'alpha': 0.6,
-            },
-            'siege-harrasment': {
-                'color': '#222222',
-                'linewidth': 3,
-                'linestyle': ':',
-                'arrowstyle': '-',
-                'alpha': 0.9,
             },
         },
 

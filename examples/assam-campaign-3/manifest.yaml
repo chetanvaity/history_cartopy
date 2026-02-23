@@ -43,14 +43,14 @@ campaigns:
   # Final offensive: Garhgaon to Tipam
   - name: "Offensive 1"
     path: ["Garhgaon", "Tipam"]
-    style: "invasion"
+    style: "power"
     label_above: "Mir Jumla"
     label_below: "Nov 18"
 
   # Farthest advance: Tipam to Namrup
   - name: "Offensive 2"
     path: ["Tipam", "Namrup"]
-    style: "invasion"
+    style: "power"
     label_below: "Nov 20"
 
   # Return march begins

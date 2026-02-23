@@ -299,9 +299,9 @@ def _render_arrowhead(ax, path, color, alpha, dpp, head_length_pts=12, head_widt
     ))
 
 
-def apply_campaign_simple(ax, geometry, label_segment, style, label_above, label_below, arrows='final'):
+def apply_campaign_march(ax, geometry, label_segment, style, label_above, label_below, arrows='final'):
     """
-    Style 1: Simple line with arrow head(s).
+    Render a march (secondary movement) arrow: thin solid line with arrowhead.
 
     Args:
         ax: matplotlib axes
@@ -317,7 +317,6 @@ def apply_campaign_simple(ax, geometry, label_segment, style, label_above, label
 
     full_path = geometry['full_path']
 
-    # Draw the path
     arrow = patches.FancyArrowPatch(
         path=patches.Path(full_path),
         color=color,
@@ -329,14 +328,51 @@ def apply_campaign_simple(ax, geometry, label_segment, style, label_above, label
     )
     ax.add_patch(arrow)
 
-    # Additional arrowheads at waypoints if arrows='all'
     if arrows == 'all' and len(geometry['segments']) > 1:
         dpp = get_deg_per_pt(ax)
         for seg in geometry['segments'][:-1]:
             _render_arrowhead(ax, seg['path'], color, alpha, dpp,
                               head_length_pts=4, head_width_pts=2)
 
-    # Labels
+    _render_campaign_labels(ax, label_segment, label_above, label_below, color)
+
+
+def apply_campaign_retreat(ax, geometry, label_segment, style, label_above, label_below, arrows='final'):
+    """
+    Render a retreat arrow: dotted line with arrowhead, lighter weight.
+
+    Args:
+        ax: matplotlib axes
+        geometry: dict from _get_multistop_geometry()
+        label_segment: segment dict for label placement
+        style: style dict from CAMPAIGN_STYLES
+        label_above, label_below: label text
+        arrows: 'final' or 'all'
+    """
+    color = style.get('color', 'black')
+    linewidth = style.get('linewidth', 1.5)
+    alpha = style.get('alpha', 0.8)
+
+    full_path = geometry['full_path']
+
+    arrow = patches.FancyArrowPatch(
+        path=patches.Path(full_path),
+        color=color,
+        arrowstyle='-|>,head_length=5,head_width=3',
+        linewidth=linewidth,
+        linestyle=':',
+        alpha=alpha,
+        transform=ccrs.PlateCarree(),
+        zorder=4
+    )
+    ax.add_patch(arrow)
+
+    if arrows == 'all' and len(geometry['segments']) > 1:
+        dpp = get_deg_per_pt(ax)
+        for seg in geometry['segments'][:-1]:
+            _render_arrowhead(ax, seg['path'], color, alpha, dpp,
+                              head_length_pts=4, head_width_pts=2)
+
     _render_campaign_labels(ax, label_segment, label_above, label_below, color)
 
 
@@ -414,7 +450,7 @@ def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_
 
 
 def apply_campaign(ax, geometry, label_segment, label_above="", label_below="",
-                   style_key="invasion", arrows="final"):
+                   style_key="power", arrows="final", color_override=None):
     """
     Main campaign rendering router.
 
@@ -423,16 +459,20 @@ def apply_campaign(ax, geometry, label_segment, label_above="", label_below="",
         geometry: dict from _get_multistop_geometry()
         label_segment: segment dict for label placement (from _get_label_candidates)
         label_above, label_below: label text
-        style_key: key into CAMPAIGN_STYLES
+        style_key: 'power', 'march', or 'retreat'
         arrows: 'final' (only at end) or 'all' (at each waypoint)
+        color_override: optional hex color string to override the style's default color
     """
     if geometry is None or geometry['full_path'] is None:
         return
 
     style = CAMPAIGN_STYLES.get(style_key, {}).copy()
-    render_type = style.get('type', 'simple')
+    if color_override:
+        style['color'] = color_override
 
-    if render_type == 'power':
+    if style_key == 'power':
         apply_campaign_power(ax, geometry, label_segment, style, label_above, label_below, arrows)
-    else:
-        apply_campaign_simple(ax, geometry, label_segment, style, label_above, label_below, arrows)
+    elif style_key == 'retreat':
+        apply_campaign_retreat(ax, geometry, label_segment, style, label_above, label_below, arrows)
+    else:  # 'march' and any unknown fallback
+        apply_campaign_march(ax, geometry, label_segment, style, label_above, label_below, arrows)

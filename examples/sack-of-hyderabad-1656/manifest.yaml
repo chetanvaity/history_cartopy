@@ -48,13 +48,13 @@ labels:
 campaigns:
   - name: "Muhammad Sultan"
     path: ["Nanded", "Hyderabad"]
-    style: "invasion"
+    style: "power"
     rad: 0.1
     label_above: "M. Sultan"
     label_below: "Jan 1666"
   - name: "Aurangzeb"
     path: ["Aurangabad", "Hyderabad"]
-    style: "boring"
+    style: "march"
     rad: -0.2
     label_above: "Aurangzeb"
     label_below: "Feb 1666"

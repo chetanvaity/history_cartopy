@@ -48,6 +48,7 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
 
     for item in events:
         text = item.get('text', '')
+        subtext = item.get('subtext', '')
         icon_name = item.get('icon')
 
         # Get coordinates - either direct coords or from gazetteer
@@ -78,6 +79,7 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
         event_render_data.append({
             'event_id': event_id,
             'text': text,
+            'subtext': subtext,
             'coords': (lon, lat),
             'rotation': rotation,
             'icon_name': icon_name if has_icon else None,
@@ -107,7 +109,9 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
             anchor.radius = anchor_radius  # Override with event-specific radius
 
             fontsize = LABEL_STYLES.get('event_text', {}).get('fontsize', 9)
-            candidate_offsets = anchor.get_candidate_offsets(gap_pts=0, text_height_pts=fontsize)
+            subtext_fontsize = LABEL_STYLES.get('event_subtext', {}).get('fontsize', 7)
+            block_height = fontsize + subtext_fontsize + 2 if subtext else fontsize
+            candidate_offsets = anchor.get_candidate_offsets(gap_pts=0, text_height_pts=block_height)
 
             logger.debug(f"Event '{event_id}' at ({lon:.2f}, {lat:.2f}): generating {len(candidate_offsets)} candidate positions")
 
@@ -182,6 +186,9 @@ def render_events_resolved(ax, event_render_data, resolved_positions, data_dir=N
 
         # Render text at resolved position
         if event['text']:
+            main_fontsize = LABEL_STYLES.get('event_text', {}).get('fontsize', 9)
+            line_height = main_fontsize + 2  # pts between text centers
+
             text_id = f"event_text_{event_id}"
             if text_id in resolved_positions:
                 resolved = resolved_positions[text_id]
@@ -195,8 +202,17 @@ def render_events_resolved(ax, event_render_data, resolved_positions, data_dir=N
                 apply_text(ax, lon, lat, event['text'], 'event_text',
                            x_offset=x_offset_pts, y_offset=y_offset_pts,
                            rotation=rotation, ha=ha, va=va)
+                if event.get('subtext'):
+                    apply_text(ax, lon, lat, event['subtext'], 'event_subtext',
+                               x_offset=x_offset_pts,
+                               y_offset=y_offset_pts - line_height,
+                               rotation=rotation, ha=ha, va=va)
             else:
                 # Fallback: default position (NE)
                 apply_text(ax, lon, lat, event['text'], 'event_text',
                            x_offset=10, y_offset=10,
                            rotation=rotation, ha='left', va='bottom')
+                if event.get('subtext'):
+                    apply_text(ax, lon, lat, event['subtext'], 'event_subtext',
+                               x_offset=10, y_offset=10 - line_height,
+                               rotation=rotation, ha='left', va='bottom')
