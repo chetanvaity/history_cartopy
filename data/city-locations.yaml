@@ -39,10 +39,17 @@ locations:
   Jodhpur: [73.02, 26.23]
   Udaipur: [73.71, 24.58]          # Mewar capital
   Porbandar: [69.60, 21.64]        # Kathiawar coast port
+  Ajmer: [74.62, 26.45]            # Rajput holy city; Battle of Deorai (1659) fought south of here
+  Bhuj: [69.67, 23.25]             # Capital of Kutch; Dara sheltered here crossing the Rann
+  Allahabad: [81.84, 25.45]        # Confluence of Ganges & Yamuna; key staging point
+  Benares: [83.01, 25.32]          # Holy city on the Ganges; Battle of Bahadurpur fought nearby
+  Khajwa: [80.90, 25.93]           # Battle of Khajwa (5 Jan 1659); Aurangzib defeats Shuja
 
   # ===========================================================================
   # INDIA - Bengal & Assam (Mir Jumla's Campaign 1661-63)
   # ===========================================================================
+  Patna: [85.14, 25.60]              # Bihar capital; key base on the Ganges
+  Rajmahal: [87.84, 24.94]           # Mughal Bengal capital; Shuja's base in the War of Succession
   Dacca: [90.41, 23.81]              # Modern Dhaka; Mughal provincial capital
   Koch Bihar: [89.45, 26.34]         # Capital of Koch kingdom
   Jogighopa: [90.57, 26.23]          # Fort at mouth of Mona river
@@ -87,6 +94,13 @@ locations:
   Kabul: [69.17, 34.53]            # Mughal frontier province
   Quetta: [67.00, 30.18]           # Balochistan, Bolan Pass
   Kandahar: [65.71, 31.61]         # Contested Mughal-Safavid frontier
+
+  # ===========================================================================
+  # INDIA - Sindh & Balochistan
+  # ===========================================================================
+  Sukkur: [68.86, 27.69]           # Indus crossing town; Dara's flight route
+  Thatta: [67.92, 24.75]           # Ancient Sindhi capital near the Indus delta
+  Dadar: [67.80, 29.50]            # At the foot of the Bolan Pass; where Dara was captured (1659)
 
   # ===========================================================================
   # ARABIA & MESOPOTAMIA

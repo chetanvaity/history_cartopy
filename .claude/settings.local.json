@@ -24,7 +24,11 @@
       "Bash(ls:*)",
       "Bash(wc:*)",
       "Bash(python3:*)",
-      "Bash(PYTHONPATH=/home/chetan/source/chetanvaity/history_cartopy python:*)"
+      "Bash(PYTHONPATH=/home/chetan/source/chetanvaity/history_cartopy python:*)",
+      "Bash(fc-list:*)",
+      "Bash(head:*)",
+      "Bash(pdftotext:)",
+      "Bash(which ocrmypdf:*)"
     ]
   }
 }
