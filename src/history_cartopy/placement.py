@@ -24,8 +24,8 @@ PRIORITY = {
     'city_level_2': 80,   # Major city dot
     'city_level_3': 70,   # Minor city dot
     'city_level_4': 60,   # Modern place dot
-    # Campaign arrows - medium-high priority (labels avoid these)
-    'campaign_arrow': 55,
+    # Campaign arrows - just below capital city dots
+    'campaign_arrow': 95,
     # Labels - lower priority so they can move around anchors
     'city_label_1': 48,   # Capital label
     'city_label_2': 46,   # Major city label
@@ -49,12 +49,36 @@ class LabelCandidate:
     positions: list  # list[PlacementElement]
     # After resolution
     resolved_idx: int = -1  # Which position was chosen (-1 = not resolved)
+    fallback_idx: int = 0   # Position to use if all positions conflict
 
     @property
     def resolved(self):
         """Get the resolved PlacementElement."""
         if self.resolved_idx < 0:
             raise ValueError(f"Candidate '{self.id}' not yet resolved")
+        return self.positions[self.resolved_idx]
+
+
+@dataclass
+class PairedLabelCandidate:
+    """Two co-located labels (city + nearby event) placed cooperatively.
+
+    Each position is a [city_elem, event_elem] pair, pre-filtered so the
+    two bboxes don't intersect each other. Both share the same group so
+    would_overlap() won't count them as blocking each other.
+    """
+    id: str
+    element_type: str
+    priority: int
+    group: str
+    positions: list  # list of [PlacementElement, PlacementElement]
+    resolved_idx: int = -1
+    fallback_idx: int = 0   # Pair index to use if all pairs conflict
+
+    @property
+    def resolved(self):
+        if self.resolved_idx < 0:
+            raise ValueError(f"Paired candidate '{self.id}' not yet resolved")
         return self.positions[self.resolved_idx]
 
 
@@ -145,6 +169,8 @@ class PlacementManager:
         group: str = None,
         ha: str = 'left',
         va: str = 'center',
+        subtext: str = None,
+        subtext_fontsize: float = None,
     ) -> PlacementElement:
         """
         Add a label element.
@@ -161,11 +187,18 @@ class PlacementManager:
             group: Group ID - elements in same group don't count as overlapping
             ha: Horizontal alignment ('left', 'center', 'right')
             va: Vertical alignment ('top', 'center', 'bottom')
+            subtext: Optional second line of text (e.g. event date)
+            subtext_fontsize: Font size for subtext in points
         """
         # Approximate text dimensions in points
         char_width = fontsize * 0.6  # Average character width
         text_width_pts = len(text) * char_width
         text_height_pts = fontsize * 1.2
+
+        # Widen bbox to accommodate subtext if it is wider than the main text
+        if subtext and subtext_fontsize:
+            sub_width_pts = len(subtext) * subtext_fontsize * 0.6
+            text_width_pts = max(text_width_pts, sub_width_pts)
 
         # Convert to degrees
         x_offset_deg = x_offset_pts * self.dpp
@@ -199,6 +232,13 @@ class PlacementManager:
         else:  # center
             y1 = anchor_y - text_height_deg / 2
             y2 = anchor_y + text_height_deg / 2
+
+        # Extend bbox downward to cover subtext, which is rendered below the main text
+        if subtext and subtext_fontsize:
+            line_height_deg = (fontsize + 2) * self.dpp   # gap between text centres
+            sub_half_deg = subtext_fontsize * 1.2 / 2 * self.dpp
+            subtext_bottom = anchor_y - line_height_deg - sub_half_deg
+            y1 = min(y1, subtext_bottom)
 
         # Add padding to create breathing room between labels and nearby dots
         padding_deg = 2 * self.dpp  # 2 points of inter-element breathing room
@@ -697,6 +737,32 @@ class PlacementManager:
             placed = False
             rejection_reasons = []  # Track why each position was rejected
 
+            # --- Paired candidate (city + event cooperatively placed) ---
+            if isinstance(candidate, PairedLabelCandidate):
+                logger.debug(f"Resolving paired '{candidate.id}' (priority={candidate.priority}, "
+                             f"{len(candidate.positions)} position pairs)")
+                for idx, elems in enumerate(candidate.positions):
+                    if all(not self.would_overlap(e) for e in elems):
+                        for e in elems:
+                            self.elements[e.id] = e
+                            resolved[e.id] = e
+                        candidate.resolved_idx = idx
+                        placed = True
+                        logger.debug(f"  -> Paired placed at position pair {idx}")
+                        break
+
+                if not placed:
+                    fb = candidate.fallback_idx
+                    elems = candidate.positions[fb]
+                    for e in elems:
+                        self.elements[e.id] = e
+                        resolved[e.id] = e
+                    candidate.resolved_idx = fb
+                    unresolved.append(candidate)
+                    logger.warning(f"Could not place paired '{candidate.id}' without overlap - using 1.3x pair")
+                continue
+
+            # --- Single label candidate ---
             logger.debug(f"Resolving '{candidate.id}' (priority={candidate.priority}, "
                         f"{len(candidate.positions)} positions)")
 
@@ -720,13 +786,14 @@ class PlacementManager:
                                 f"{[f'{o[1]}:{o[2]}' for o in overlap_details]}")
 
             if not placed:
-                # All positions overlap - use first (preferred) and log warning
-                position = candidate.positions[0]
+                # All positions overlap - use fallback (1.3x tier) and log warning
+                fb = candidate.fallback_idx
+                position = candidate.positions[fb]
                 self.elements[position.id] = position
-                candidate.resolved_idx = 0
+                candidate.resolved_idx = fb
                 resolved[candidate.id] = position
                 unresolved.append(candidate)
-                logger.warning(f"Could not place '{candidate.id}' without overlap - using position 0")
+                logger.warning(f"Could not place '{candidate.id}' without overlap - using 1.3x tier")
                 # Log detailed rejection reasons
                 for pos_idx, bbox, overlap_details in rejection_reasons:
                     logger.debug(f"  Position {pos_idx} rejected: bbox=({bbox[0]:.3f}, {bbox[1]:.3f}, "
@@ -788,9 +855,9 @@ class PlacementManager:
                     break
 
             if not placed:
-                # All gaps conflict - use largest (4x) and log warning
-                candidate.resolved_idx = len(candidate.variants) - 1
-                variant = candidate.variants[-1]
+                # All gaps conflict - use smallest (1x, closest to anchor) and log warning
+                candidate.resolved_idx = 0
+                variant = candidate.variants[0]
                 self.add_campaign_arrow(
                     candidate.id,
                     path=variant['path'],
@@ -799,7 +866,7 @@ class PlacementManager:
                     group=candidate.group,
                 )
                 resolved[candidate.id] = candidate
-                logger.warning(f"Arrow {candidate.id} conflicts even at {variant['gap_multiplier']}x gap")
+                logger.warning(f"Arrow {candidate.id} conflicts at all gaps - using {variant['gap_multiplier']}x (closest to anchor)")
 
         return resolved
 

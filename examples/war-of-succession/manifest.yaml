@@ -107,7 +107,7 @@ campaigns:
   # After Dharmat victory, Aurangzib flanks Dara's Chambal line and
   # reaches the decisive field of Samugarh
   - name: "Aurangzib: Dharmat to Samugarh"
-    path: ["Dharmat", "Gwalior", "Samugarh"]
+    path: ["Ujjain", "Gwalior", "Samugarh"]
     style: "power"
     color: "#8B0000"
     rad: 0.2

@@ -149,7 +149,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             # Tier 2: 1.5x radius (8 positions) - fallback
             # Tier 3: 2x radius (8 positions) - last resort
             positions = []
-            distance_multipliers = [1.0, 1.5, 2.0]
+            distance_multipliers = [1.0, 1.3, 1.6]
 
             for multiplier in distance_multipliers:
                 # gap_pts adds to the base radius
@@ -184,6 +184,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
                 priority=label_priority,
                 group=city_group,
                 positions=positions,
+                fallback_idx=8,  # First position of 1.3x tier
             )
             city_candidates.append(candidate)
 

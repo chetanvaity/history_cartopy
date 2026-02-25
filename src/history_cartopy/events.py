@@ -10,7 +10,7 @@ import logging
 import os
 
 from history_cartopy.styles import apply_text
-from history_cartopy.icons import render_icon, DEFAULT_ICONSET
+from history_cartopy.icons import render_icon, DEFAULT_ICONSET, ICON_SIZE_PT
 from history_cartopy.anchor import AnchorCircle
 from history_cartopy.themes import EVENT_CONFIG, LABEL_STYLES, ICONSET
 from history_cartopy.placement import LabelCandidate, PRIORITY
@@ -92,7 +92,7 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
             pm.add_icon(
                 f"event_icon_{event_id}",
                 (lon, lat),
-                size_pts=25,
+                size_pts=ICON_SIZE_PT,
                 priority=PRIORITY.get('event_icon', 90),
                 element_type='event_icon',
                 group=event_group,
@@ -129,6 +129,8 @@ def collect_events(gazetteer, manifest, placement_manager, data_dir=None):
                     group=event_group,
                     ha=ha,
                     va=va,
+                    subtext=subtext if subtext else None,
+                    subtext_fontsize=subtext_fontsize if subtext else None,
                 )
                 element.id = f"event_text_{event_id}"
                 element.ha = ha

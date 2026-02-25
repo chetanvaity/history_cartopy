@@ -1,12 +1,22 @@
 """Campaign arrow and label handling."""
 
 import logging
+import re
 import numpy as np
 
 from history_cartopy.themes import CITY_LEVELS, LABEL_STYLES
 from history_cartopy.placement import LabelCandidate, ArrowCandidate, PRIORITY
 
 logger = logging.getLogger('history_cartopy.campaigns')
+
+
+def _campaign_arrow_id(idx, item):
+    """Generate a human-readable arrow ID from campaign name and index."""
+    name = item.get('name', '')
+    if name:
+        slug = re.sub(r'[^a-zA-Z0-9]+', '_', name).strip('_').lower()[:40]
+        return f"campaign_arrow_{idx}_{slug}"
+    return f"campaign_arrow_{idx}"
 
 
 def _get_city_level_lookup(manifest, event_levels=None):
@@ -58,7 +68,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager, event_level
     city_levels = _get_city_level_lookup(manifest, event_levels=event_levels)
     dpp = pm.dpp
 
-    gap_multipliers = [2.0, 3.0, 4.0]  # Try in order: shortest first
+    gap_multipliers = [1.0, 2.0, 3.0]  # Try in order: shortest first
 
     arrow_candidates = []
     campaign_render_data = []
@@ -112,6 +122,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager, event_level
         curvature = item.get('rad', 0.0)
 
         campaign_group = f"campaign_{idx}"
+        arrow_id = _campaign_arrow_id(idx, item)
 
         # 4. Generate variants at different gap multipliers
         variants = []
@@ -149,7 +160,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager, event_level
             continue
 
         arrow_candidates.append(ArrowCandidate(
-            id=f"campaign_arrow_{idx}",
+            id=arrow_id,
             campaign_idx=idx,
             priority=PRIORITY.get('campaign_arrow', 55),
             group=campaign_group,
@@ -159,6 +170,7 @@ def collect_arrow_candidates(gazetteer, manifest, placement_manager, event_level
         # Store render data (geometry will be filled in after resolution)
         campaign_render_data.append({
             'idx': idx,
+            'arrow_id': arrow_id,
             'geometry': None,  # Will be set after arrow resolution
             'label_above': label_above,
             'label_below': label_below,
@@ -196,7 +208,7 @@ def collect_campaign_labels(manifest, resolved_arrows, placement_manager):
     logger.debug(f"Collecting campaign labels from {len(resolved_arrows)} resolved arrows")
 
     for idx, item in enumerate(campaigns):
-        arrow_id = f"campaign_arrow_{idx}"
+        arrow_id = _campaign_arrow_id(idx, item)
         if arrow_id not in resolved_arrows:
             continue
 

@@ -25,6 +25,7 @@ from history_cartopy.narrative import (
     estimate_narrative_box_fracs,
 )
 from history_cartopy.placement import PlacementManager
+from history_cartopy.pairing import detect_and_pair
 from history_cartopy.styles import get_deg_per_pt
 from history_cartopy.themes import apply_theme, CITY_LEVELS, EVENT_CONFIG
 
@@ -312,6 +313,7 @@ def main():
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--debug-river-candidates', action='store_true', help='Render all river label candidates')
     parser.add_argument('--debug-anchor-circles', action='store_true', help='Render anchor circles for all cities and events')
+    parser.add_argument('--debug-placement', action='store_true', help='Render placement bounding boxes for all elements')
 
     args = parser.parse_args()
 
@@ -457,6 +459,13 @@ def main():
         gazetteer[ev['event_id']] = list(ev['coords'])
     event_levels = {ev['event_id']: 2 for ev in event_render_data}
 
+    # Detect and pair close city+event label combinations
+    logger.info("Detecting city+event label pairs")
+    paired_candidates, city_candidates, event_candidates = detect_and_pair(
+        city_candidates, event_candidates, event_render_data, pm
+    )
+    logger.info(f"Found {len(paired_candidates)} city+event pair(s)")
+
     # Collect arrow candidates (with 2x, 3x, 4x gap variants)
     logger.info("Collecting campaign arrow candidates")
     arrow_candidates, campaign_render_data = collect_arrow_candidates(
@@ -471,7 +480,7 @@ def main():
 
     # Update campaign_render_data with resolved geometry
     for data in campaign_render_data:
-        arrow_id = f"campaign_arrow_{data['idx']}"
+        arrow_id = data['arrow_id']
         if arrow_id in resolved_arrows:
             data['geometry'] = resolved_arrows[arrow_id].resolved_geometry
 
@@ -510,7 +519,7 @@ def main():
 
     # Phase 2c: RESOLVE ALL LABELS
     logger.info("Resolving label overlaps")
-    all_candidates = city_candidates + river_candidates + campaign_candidates + event_candidates
+    all_candidates = city_candidates + river_candidates + campaign_candidates + event_candidates + paired_candidates
     resolved_positions = pm.resolve_greedy(all_candidates)
     logger.info(f"Resolved {len(resolved_positions)} label positions")
 
@@ -549,6 +558,30 @@ def main():
                 facecolor='none', edgecolor='#0055cc',
                 linewidth=0.7, linestyle='--', alpha=0.7,
                 transform=ccrs.PlateCarree(), zorder=10
+            ))
+
+    # Debug: render placement bounding boxes for all elements
+    if args.debug_placement:
+        import matplotlib.patches as mpatches
+        bbox_colors = {
+            'city_label':     '#cc0000',
+            'campaign_arrow': '#0044cc',
+            'campaign_label': '#007700',
+            'event_label':    '#cc6600',
+            'event_icon':     '#cc6600',
+            'dot':            '#888888',
+            'map_box':        '#880088',
+            'region':         '#00aacc',
+            'river':          '#0088cc',
+        }
+        for elem in pm.elements.values():
+            color = bbox_colors.get(elem.type, '#999999')
+            x1, y1, x2, y2 = elem.bbox
+            ax.add_patch(mpatches.Rectangle(
+                (x1, y1), x2 - x1, y2 - y1,
+                facecolor='none', edgecolor=color,
+                linewidth=0.5, alpha=0.8,
+                transform=ccrs.PlateCarree(), zorder=20,
             ))
 
     # Render narrative markers on map
