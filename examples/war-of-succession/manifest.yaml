@@ -107,10 +107,10 @@ campaigns:
   # After Dharmat victory, Aurangzib flanks Dara's Chambal line and
   # reaches the decisive field of Samugarh
   - name: "Aurangzib: Dharmat to Samugarh"
-    path: ["Ujjain", "Gwalior", "Samugarh"]
+    path: ["Ujjain", "Samugarh"]
     style: "power"
     color: "#8B0000"
-    rad: 0.2
+    rad: -0.2
 
   # Victory march: Agra besieged, Shah Jahan imprisoned; Delhi coronation
   # Starts at Agra (Samugarh is effectively the same point at this scale)
@@ -127,9 +127,9 @@ campaigns:
 
   - name: "Murad Bakhsh: Gujarat to junction"
     path: ["Ahmedabad", "Dharmat"]
-    style: "march"
+    style: "power"
     color: "#CC5500"
-    label_above: "Murad Bakhsh"
+    label_above: "Murad"
     rad: -0.3
 
   # -----------------------------------------------------------------------
@@ -142,7 +142,7 @@ campaigns:
     color: "#1A4F8A"
     label_above: "Jaswant Singh"
     label_below: "Feb 1658"
-    rad: -0.4
+    rad: -0.3
 
   # -----------------------------------------------------------------------
   # DARA SHUKOH — FLIGHT ACROSS INDIA
@@ -190,15 +190,9 @@ campaigns:
     path: ["Rajmahal", "Patna", "Benares"]
     style: "power"
     color: "#1E7840"
-    label_above: "Shuja (Bengal)"
+    label_above: "Shuja"
     label_below: "Jan 1658"
     rad: 0.2
-
-  - name: "Shuja: retreats after Bahadurpur"
-    path: ["Benares", "Rajmahal"]
-    style: "retreat"
-    color: "#1E7840"
-    rad: 0.3
 
   # Shuja's second advance when Aurangzib was chasing Dara in the Punjab
   # Defeated at Khajwa by Aurangzib who rushed back from pursuit
@@ -212,7 +206,7 @@ campaigns:
   # Final retreat: after Khajwa, Shuja falls back through Bengal to Dacca
   # then flees to Arracan where he is killed (Feb 1661)
   - name: "Shuja: retreat to Bengal and Dacca"
-    path: ["Khajwa", "Patna", "Rajmahal", "Dacca"]
+    path: ["Rajmahal", "Dacca", ""]
     style: "retreat"
     color: "#1E7840"
     label_below: "1659–1660"

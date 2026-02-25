@@ -1,4 +1,5 @@
 import matplotlib.patheffects as PathEffects
+import matplotlib.colors as mcolors
 from matplotlib.transforms import offset_copy
 import cartopy.crs as ccrs
 from history_cartopy.themes import LABEL_STYLES
@@ -10,6 +11,11 @@ def apply_text(ax, lon, lat, text, style_key, color_override=None, rotation=0, x
     style.update(kwargs)
 
     use_halo = style.pop('halo', False)
+    halo_color = style.pop('halo_color', 'white')
+    halo_width = style.pop('halo_width', 2)
+    if halo_color == 'darken':
+        rgb = mcolors.to_rgb(style.get('color', 'black'))
+        halo_color = tuple(c * 0.5 for c in rgb)
 
     # --- INTELLIGENT OFFSET LOGIC ---
     # 1. Start with the Geodetic transform (Lat/Lon)
@@ -27,7 +33,7 @@ def apply_text(ax, lon, lat, text, style_key, color_override=None, rotation=0, x
                 rotation=rotation, **style)
 
     if use_halo:
-        t.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='white', alpha=0.7)])
+        t.set_path_effects([PathEffects.withStroke(linewidth=halo_width, foreground=halo_color, alpha=0.7)])
     return t
 
 

@@ -67,8 +67,8 @@ THEMES = {
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#5d4037', 'alpha': 0.4, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
             'campaign_below': {'fontsize': 5, 'weight': 'normal', 'family': 'serif', 'color': 'black', 'halo': True},
-            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
-            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#800020', 'halo': True},
+            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#800020', 'halo': True, 'halo_width': 1.5},
+            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#800020', 'halo': True, 'halo_width': 1.5},
         },
 
         'event_config': {
@@ -182,8 +182,8 @@ THEMES = {
             'region':  {'fontsize': 20, 'family': 'Latin Modern Roman Caps', 'style': 'italic', 'color': '#333333', 'alpha': 0.2, 'halo': False, 'ha': 'center', 'va': 'center'},
             'campaign_above': {'fontsize': 7, 'weight': 'normal', 'family': 'serif', 'color': '#222222', 'halo': True},
             'campaign_below': {'fontsize': 5, 'weight': 'normal', 'family': 'serif', 'color': '#333333', 'halo': True},
-            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
-            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#222222', 'halo': True},
+            'event_text':  {'fontsize': 7, 'weight': 'bold', 'family': 'sans-serif', 'color': '#222222', 'halo': True, 'halo_width': 1.5},
+            'event_subtext': {'fontsize': 6, 'weight': 'normal', 'family': 'sans-serif', 'color': '#222222', 'halo': True, 'halo_width': 1.5},
         },
 
         'event_config': {
