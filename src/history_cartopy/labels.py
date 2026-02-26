@@ -344,6 +344,7 @@ def collect_labels(gazetteer, manifest, placement_manager, data_dir=None):
             'rotation': rotation,
         })
 
+        logger.info(f"Region '{name}' collected at ({lon:.2f}, {lat:.2f}), rotation={rotation}")
         positions = []
         for x_off_pts, y_off_pts in region_shifts:
             element = pm.add_label(
@@ -533,10 +534,13 @@ def render_labels_resolved(ax, city_render_data, river_data, region_data,
             resolved = resolved_positions[label_id]
             x_offset_pts = resolved.offset[0] / dpp
             y_offset_pts = resolved.offset[1] / dpp
+            logger.info(f"Region '{region['name']}' rendered at resolved position "
+                        f"(offset={x_offset_pts:.1f}pt, {y_offset_pts:.1f}pt)")
             apply_text(ax, region['coords'][0], region['coords'][1],
                        region['display'], 'region', rotation=region['rotation'],
                        x_offset=x_offset_pts, y_offset=y_offset_pts)
         else:
+            logger.warning(f"Region '{region['name']}' not in resolved_positions — rendering at raw coords")
             apply_text(ax, region['coords'][0], region['coords'][1],
                        region['display'], 'region', rotation=region['rotation'])
 

@@ -763,7 +763,7 @@ class PlacementManager:
                 continue
 
             # --- Single label candidate ---
-            logger.debug(f"Resolving '{candidate.id}' (priority={candidate.priority}, "
+            logger.info(f"Resolving '{candidate.id}' (priority={candidate.priority}, "
                         f"{len(candidate.positions)} positions)")
 
             for idx, position in enumerate(candidate.positions):
@@ -775,7 +775,7 @@ class PlacementManager:
                     candidate.resolved_idx = idx
                     resolved[candidate.id] = position
                     placed = True
-                    logger.debug(f"  -> Placed at position {idx} (no overlaps)")
+                    logger.info(f"  -> Placed at position {idx} (no overlaps)")
                     break
                 else:
                     # Track what caused the rejection

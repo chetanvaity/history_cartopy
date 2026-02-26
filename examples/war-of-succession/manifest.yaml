@@ -22,7 +22,7 @@ labels:
     - name: "Agra"
       level: 1
     - name: "Delhi"
-      level: 1
+      level: 2
 
     # Level 2: Major bases and strongholds
     - name: "Aurangabad"
@@ -58,7 +58,7 @@ labels:
     - name: "Patna"
       level: 3
     - name: "Rajmahal"
-      level: 3
+      level: 2
     - name: "Thatta"
       level: 3
 
@@ -78,7 +78,7 @@ labels:
       coords: [78.5, 17.0]
       rotation: 0
     - name: "BENGAL"
-      coords: [89.5, 27.0]
+      coords: [88, 26]
       rotation: 0
     - name: "PUNJAB"
       coords: [72.5, 32.0]
@@ -87,7 +87,7 @@ labels:
       coords: [68.0, 25.5]
       rotation: 0
     - name: "RAJPUTANA"
-      coords: [73.0, 26.5]
+      coords: [73.0, 27.5]
       rotation: 0
 
 campaigns:
@@ -118,8 +118,7 @@ campaigns:
     path: ["Agra", "Delhi"]
     style: "march"
     color: "#8B0000"
-    label_below: "Jun–Jul 1658"
-    rad: 0.3
+    label_below: "Jul 1658"
 
   # -----------------------------------------------------------------------
   # MURAD BAKHSH — ALLIED ADVANCE FROM GUJARAT
@@ -142,7 +141,7 @@ campaigns:
     color: "#1A4F8A"
     label_above: "Jaswant Singh"
     label_below: "Feb 1658"
-    rad: -0.3
+    rad: -0.2
 
   # -----------------------------------------------------------------------
   # DARA SHUKOH — FLIGHT ACROSS INDIA
@@ -200,7 +199,7 @@ campaigns:
     path: ["Rajmahal", "Patna", "Khajwa"]
     style: "power"
     color: "#1E7840"
-    label_above: "Shuja (2nd advance)"
+    label_above: "Shuja"
     rad: -0.2
 
   # Final retreat: after Khajwa, Shuja falls back through Bengal to Dacca
@@ -209,8 +208,8 @@ campaigns:
     path: ["Rajmahal", "Dacca", ""]
     style: "retreat"
     color: "#1E7840"
+    label_above: "Flight"
     label_below: "1659–1660"
-    rad: 0.3
 
 narrative:
   position: "bottom-right"

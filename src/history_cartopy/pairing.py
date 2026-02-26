@@ -16,6 +16,22 @@ from history_cartopy.themes import EVENT_CONFIG, LABEL_STYLES
 
 logger = logging.getLogger('history_cartopy.pairing')
 
+# Maximum distance (in typographic points) between a city dot and an event marker
+# for them to be considered co-located and eligible for cooperative label placement.
+# At typical map scales, 10pt ≈ a few kilometres — tight enough that only events
+# essentially on top of a city get paired.
+PAIR_THRESHOLD_PTS = 10
+
+
+def _haversine_km(lon1, lat1, lon2, lat2):
+    """Approximate great-circle distance in km between two lon/lat points."""
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
+
 
 def _make_event_positions_3tier(event_cand, event_subtext, event_subtext_fontsize, pm):
     """
@@ -73,7 +89,7 @@ def _make_event_positions_3tier(event_cand, event_subtext, event_subtext_fontsiz
 
 
 def detect_and_pair(city_candidates, event_candidates, event_render_data, pm,
-                    threshold_pts=50):
+                    threshold_pts=PAIR_THRESHOLD_PTS):
     """
     Detect close city+event pairs and generate PairedLabelCandidate objects.
 
@@ -173,9 +189,10 @@ def detect_and_pair(city_candidates, event_candidates, event_render_data, pm,
             paired_city_ids.add(city_cand.id)
             paired_event_ids.add(event_cand.id)
 
+            dist_km = _haversine_km(city_coords[0], city_coords[1], event_coords[0], event_coords[1])
             logger.info(
                 f"Paired '{city_cand.id}' + '{event_cand.id}' "
-                f"(dist={dist / pm.dpp:.0f}pt, {len(paired_positions)} position pairs)"
+                f"(dist={dist / pm.dpp:.0f}pt, ~{dist_km:.0f}km, {len(paired_positions)} position pairs)"
             )
             break  # Each city pairs with at most one event
 
