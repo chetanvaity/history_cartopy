@@ -316,20 +316,18 @@ def apply_campaign_march(ax, geometry, label_segment, style, label_above, label_
     alpha = style.get('alpha', 0.8)
 
     full_path = geometry['full_path']
+    dpp = get_deg_per_pt(ax)
 
-    arrow = patches.FancyArrowPatch(
-        path=patches.Path(full_path),
-        color=color,
-        arrowstyle='-|>,head_length=5,head_width=3',
-        linewidth=linewidth,
-        alpha=alpha,
-        transform=ccrs.PlateCarree(),
-        zorder=4
+    # Use ax.plot + _render_arrowhead instead of FancyArrowPatch: FancyArrowPatch
+    # can lose alpha on straight paths when matplotlib simplifies collinear points.
+    ax.plot(
+        full_path[:, 0], full_path[:, 1],
+        color=color, linewidth=linewidth, alpha=alpha,
+        transform=ccrs.PlateCarree(), zorder=4,
     )
-    ax.add_patch(arrow)
+    _render_arrowhead(ax, full_path, color, alpha, dpp, head_length_pts=5, head_width_pts=3)
 
     if arrows == 'all' and len(geometry['segments']) > 1:
-        dpp = get_deg_per_pt(ax)
         for seg in geometry['segments'][:-1]:
             _render_arrowhead(ax, seg['path'], color, alpha, dpp,
                               head_length_pts=4, head_width_pts=2)

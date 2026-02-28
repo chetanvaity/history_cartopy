@@ -151,7 +151,7 @@ campaigns:
   - name: "Dara flees: Agra to Lahore"
     path: ["Agra", "Delhi", "Lahore"]
     style: "retreat"
-    color: "#6B3FA0"
+    color: "darkgreen"
     label_above: "Dara Shukoh (flight)"
     label_below: "Jun–Jul 1658"
     rad: -0.4
@@ -160,14 +160,14 @@ campaigns:
   - name: "Dara flees: Lahore through Sindh"
     path: ["Lahore", "Multan", "Sukkur", "Thatta"]
     style: "retreat"
-    color: "#6B3FA0"
+    color: "darkgreen"
     rad: 0.2
 
   # Segment 3: Dara crosses the Rann of Kutch back into Gujarat, then to Ajmer
   - name: "Dara flees: Sindh to Ajmer (last stand)"
     path: ["Thatta", "Bhuj", "Ahmedabad", "Ajmer"]
     style: "retreat"
-    color: "#6B3FA0"
+    color: "darkgreen"
     rad: 0.2
 
   # Segment 4: Defeated at Deorai, Dara flees southwest through Sindh;
@@ -175,7 +175,7 @@ campaigns:
   - name: "Dara: defeat at Deorai, captured near Bolan Pass"
     path: ["Ajmer", "Dadar"]
     style: "retreat"
-    color: "#6B3FA0"
+    color: "darkgreen"
     label_below: "Mar–Jun 1659"
     rad: 0.4
 
@@ -188,7 +188,7 @@ campaigns:
   - name: "Shuja: first advance from Bengal"
     path: ["Rajmahal", "Patna", "Benares"]
     style: "power"
-    color: "#1E7840"
+    color: "purple"
     label_above: "Shuja"
     label_below: "Jan 1658"
     rad: 0.2
@@ -198,7 +198,7 @@ campaigns:
   - name: "Shuja: second advance toward Agra"
     path: ["Rajmahal", "Patna", "Khajwa"]
     style: "power"
-    color: "#1E7840"
+    color: "purple"
     label_above: "Shuja"
     rad: -0.2
 
@@ -207,7 +207,7 @@ campaigns:
   - name: "Shuja: retreat to Bengal and Dacca"
     path: ["Rajmahal", "Dacca", ""]
     style: "retreat"
-    color: "#1E7840"
+    color: "purple"
     label_above: "Flight"
     label_below: "1659–1660"
 
@@ -217,19 +217,19 @@ narrative:
   items:
     - label: false
       text: >
-        Shah Jahan had four sons — Dara Shukoh, Shuja, Aurangzib, and Murad Bakhsh —
-        each governing a province. When the emperor fell gravely ill in September 1657,
+        Shah Jahan had four sons — Dara Shukoh, Shuja, Aurangzib, and Murad —
+        each governing a province (Agra, Bengal, Deccan, and Gujarat respectively). When the emperor fell gravely ill in September 1657,
         all four raised armies and marched for the throne.
     - label: false
       text: >
         Aurangzib, the ablest general, allied with Murad Bakhsh and drove north from the
-        Deccan. He shattered Dara's advance guard at Dharmat near Ujjain (April 1658) and routed Dara
+        Deccan. He shattered Dara's advance guard led by Jaswant Singh at Dharmat near Ujjain (April 1658) and routed Dara
         himself at Samugarh. Agra fell; Shah Jahan was imprisoned in the Fort; Aurangzib
         crowned himself at Delhi in July 1658.
     - label: false
       text: >
         Shuja proclaimed himself emperor in Bengal and pushed west twice, but was beaten
-        back at Bahadurpur and Khajwa. After the second defeat he fell back to Dacca,
+        back at Bahadurpur (by Suleiman Shukoh, Dara's son)  and Khajwa (by Aurangzib). After the second defeat he fell back to Dacca,
         then fled east to Arakan, where he was never heard from again.
     - label: false
       text: >
@@ -238,7 +238,7 @@ narrative:
         to Delhi in chains, he was executed in August 1660.
     - label: false
       text: >
-        Murad Bakhsh, having served as Aurangzib's instrument, was quietly imprisoned
+        Murad, having served as Aurangzib's instrument, was quietly imprisoned
         and executed in 1661. Aurangzib — now Alamgir, Conqueror of the World —
         reigned alone for 49 years.
   reference: "Jadunath Sarkar, History of Aurangzib"
