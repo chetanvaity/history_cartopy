@@ -372,6 +372,49 @@ def apply_campaign_retreat(ax, geometry, label_segment, style, label_above, labe
     _render_campaign_labels(ax, label_segment, label_above, label_below, color)
 
 
+def _render_power_fragment(ax, path, color, alpha, dpp):
+    """
+    Render a single tapered power-style band + arrowhead for a given path array.
+
+    Shared by apply_campaign_power (full path) and apply_campaign_broken (fragments).
+    """
+    head_len_deg = 10 * dpp
+    v = path[-1] - path[-5] if len(path) >= 5 else path[-1] - path[0]
+    v_len = np.linalg.norm(v)
+    if v_len == 0:
+        return
+    v_unit = v / v_len
+    end_base = path[-1] - v_unit * head_len_deg
+
+    distances = np.linalg.norm(path - end_base, axis=1)
+    cut_idx = np.argmin(distances)
+    body_path = path[:max(cut_idx + 1, 2)]
+
+    widths = np.linspace(0.1, 4.5, len(body_path))
+    upper, lower = [], []
+
+    for i in range(len(body_path)):
+        if i < len(body_path) - 1:
+            v = body_path[i + 1] - body_path[i]
+        else:
+            v = body_path[i] - body_path[i - 1]
+
+        v_norm = np.linalg.norm(v)
+        n = np.array([v[1], -v[0]]) / v_norm if v_norm > 0 else np.array([0, 1])
+
+        upper.append(body_path[i] + n * (widths[i] / 2) * dpp)
+        lower.append(body_path[i] - n * (widths[i] / 2) * dpp)
+
+    ax.add_patch(patches.Polygon(
+        np.vstack([upper, lower[::-1]]),
+        facecolor=color,
+        alpha=alpha,
+        transform=ccrs.PlateCarree(),
+        zorder=4
+    ))
+    _render_arrowhead(ax, path, color, alpha, dpp, head_length_pts=10, head_width_pts=4)
+
+
 def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_below, arrows='final'):
     """
     Style 2: Tapered 'Power' band with triangular head.
@@ -388,60 +431,93 @@ def apply_campaign_power(ax, geometry, label_segment, style, label_above, label_
     color = style.get('color', '#8b0000')
     alpha = style.get('alpha', 0.8)
 
-    full_path = geometry['full_path']
+    _render_power_fragment(ax, geometry['full_path'], color, alpha, dpp)
 
-    # Shorten path for arrowhead
-    head_len_deg = 10 * dpp
-    v = full_path[-1] - full_path[-5] if len(full_path) >= 5 else full_path[-1] - full_path[0]
-    v_len = np.linalg.norm(v)
-    if v_len == 0:
-        return
-    v_unit = v / v_len
-    end_base = full_path[-1] - v_unit * head_len_deg
-
-    # Find where to cut the path
-    distances = np.linalg.norm(full_path - end_base, axis=1)
-    cut_idx = np.argmin(distances)
-    body_path = full_path[:max(cut_idx + 1, 2)]
-
-    # Tapering widths
-    widths = np.linspace(0.1, 4.5, len(body_path))
-    upper, lower = [], []
-
-    for i in range(len(body_path)):
-        if i < len(body_path) - 1:
-            v = body_path[i + 1] - body_path[i]
-        else:
-            v = body_path[i] - body_path[i - 1]
-
-        v_norm = np.linalg.norm(v)
-        if v_norm > 0:
-            n = np.array([v[1], -v[0]]) / v_norm
-        else:
-            n = np.array([0, 1])
-
-        upper.append(body_path[i] + n * (widths[i] / 2) * dpp)
-        lower.append(body_path[i] - n * (widths[i] / 2) * dpp)
-
-    # Draw body
-    ax.add_patch(patches.Polygon(
-        np.vstack([upper, lower[::-1]]),
-        facecolor=color,
-        alpha=alpha,
-        transform=ccrs.PlateCarree(),
-        zorder=4
-    ))
-
-    # Draw main arrowhead
-    _render_arrowhead(ax, full_path, color, alpha, dpp, head_length_pts=10, head_width_pts=4)
-
-    # Additional arrowheads at waypoints if arrows='all'
     if arrows == 'all' and len(geometry['segments']) > 1:
         for seg in geometry['segments'][:-1]:
             _render_arrowhead(ax, seg['path'], color, alpha, dpp,
                               head_length_pts=6, head_width_pts=3)
 
-    # Labels
+    _render_campaign_labels(ax, label_segment, label_above, label_below, color)
+
+
+def _extract_path_prefix(full_path, length_frac):
+    """Return the first length_frac (0–1) of path by cumulative arc length."""
+    diffs = np.diff(full_path, axis=0)
+    seg_lens = np.linalg.norm(diffs, axis=1)
+    cumlen = np.cumsum(seg_lens)
+    target = cumlen[-1] * length_frac
+    idx = int(np.searchsorted(cumlen, target))
+    idx = min(max(idx + 1, 2), len(full_path))
+    return full_path[:idx]
+
+
+def _path_point_at_frac(full_path, frac):
+    """Return coordinate on path at arc length fraction frac (0–1)."""
+    diffs = np.diff(full_path, axis=0)
+    seg_lens = np.linalg.norm(diffs, axis=1)
+    cumlen = np.cumsum(seg_lens)
+    target = cumlen[-1] * np.clip(frac, 0.0, 1.0)
+    idx = int(np.searchsorted(cumlen, target))
+    return full_path[min(idx, len(full_path) - 1)]
+
+
+def apply_campaign_broken(ax, geometry, label_segment, style, label_above, label_below, arrows='final'):
+    """
+    Render a 'broken arrow': short solid fragments at start and end with fading
+    dot trails that disappear into empty space between them.
+
+    Suited for long campaigns where a full arrow would obscure other map action.
+
+    Args:
+        ax: matplotlib axes
+        geometry: dict from _get_multistop_geometry()
+        label_segment: segment dict for label placement
+        style: style dict from CAMPAIGN_STYLES
+        label_above, label_below: label text
+        arrows: unused (present for consistent signature)
+    """
+    color = style.get('color', '#555555')
+    alpha = style.get('alpha', 0.85)
+    fragment_frac = style.get('fragment_frac', 0.25)
+    dot_count = style.get('dot_count', 3)
+    dot_gap_frac = style.get('dot_gap_frac', 0.08)
+    dot_base_size = style.get('dot_base_size', 7.0)
+
+    full_path = geometry['full_path']
+    dpp = get_deg_per_pt(ax)
+
+    # Start fragment: first fragment_frac of path — rendered as a power band
+    start_frag = _extract_path_prefix(full_path, fragment_frac)
+    _render_power_fragment(ax, start_frag, color, alpha, dpp)
+
+    # End fragment: last fragment_frac of path — rendered as a power band
+    end_frag = _extract_path_prefix(full_path[::-1], fragment_frac)[::-1]
+    _render_power_fragment(ax, end_frag, color, alpha, dpp)
+
+    # Fading dot trails from each fragment tip toward the gap.
+    # i=0 is closest to the fragment (largest/most opaque); increases toward gap.
+    for i in range(dot_count):
+        fade = 1.0 - (i + 1) / (dot_count + 1)
+        dot_size = dot_base_size * fade
+        dot_alpha = alpha * fade
+
+        frac_s = fragment_frac + (i + 1) * dot_gap_frac / (dot_count + 1)
+        pt_s = _path_point_at_frac(full_path, frac_s)
+        ax.scatter(
+            [pt_s[0]], [pt_s[1]],
+            s=dot_size ** 2, c=[color], alpha=dot_alpha,
+            transform=ccrs.PlateCarree(), zorder=4, linewidths=0,
+        )
+
+        frac_e = (1.0 - fragment_frac) - (i + 1) * dot_gap_frac / (dot_count + 1)
+        pt_e = _path_point_at_frac(full_path, frac_e)
+        ax.scatter(
+            [pt_e[0]], [pt_e[1]],
+            s=dot_size ** 2, c=[color], alpha=dot_alpha,
+            transform=ccrs.PlateCarree(), zorder=4, linewidths=0,
+        )
+
     _render_campaign_labels(ax, label_segment, label_above, label_below, color)
 
 
@@ -455,7 +531,7 @@ def apply_campaign(ax, geometry, label_segment, label_above="", label_below="",
         geometry: dict from _get_multistop_geometry()
         label_segment: segment dict for label placement (from _get_label_candidates)
         label_above, label_below: label text
-        style_key: 'power', 'march', or 'retreat'
+        style_key: 'power', 'march', 'retreat', or 'broken'
         arrows: 'final' (only at end) or 'all' (at each waypoint)
         color_override: optional hex color string to override the style's default color
     """
@@ -470,5 +546,7 @@ def apply_campaign(ax, geometry, label_segment, label_above="", label_below="",
         apply_campaign_power(ax, geometry, label_segment, style, label_above, label_below, arrows)
     elif style_key == 'retreat':
         apply_campaign_retreat(ax, geometry, label_segment, style, label_above, label_below, arrows)
+    elif style_key == 'broken':
+        apply_campaign_broken(ax, geometry, label_segment, style, label_above, label_below, arrows)
     else:  # 'march' and any unknown fallback
         apply_campaign_march(ax, geometry, label_segment, style, label_above, label_below, arrows)

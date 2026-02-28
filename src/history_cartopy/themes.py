@@ -125,6 +125,14 @@ THEMES = {
                 'linewidth': 1.5,
                 'alpha': 0.6,
             },
+            'broken': {
+                'color': '#555555',
+                'alpha': 0.5,
+                'fragment_frac': 0.25,
+                'dot_count': 3,
+                'dot_gap_frac': 0.08,
+                'dot_base_size': 7.0,
+            },
         },
 
         'narrative_style': {
@@ -239,6 +247,14 @@ THEMES = {
                 'color': '#888888',
                 'linewidth': 1.5,
                 'alpha': 0.6,
+            },
+            'broken': {
+                'color': '#444444',
+                'alpha': 0.6,
+                'fragment_frac': 0.25,
+                'dot_count': 3,
+                'dot_gap_frac': 0.08,
+                'dot_base_size': 7.0,
             },
         },
 

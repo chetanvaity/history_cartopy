@@ -120,6 +120,17 @@ campaigns:
     color: "#8B0000"
     label_below: "Jul 1658"
 
+  # After chasing Dara into Punjab, Aurangzib wheeled east to counter
+  # Shuja's second advance, racing from Lahore to Benares before crushing
+  # Shuja at Khajwa (Jan 1659)
+  - name: "Aurangzib: Lahore to Benares (counter-Shuja)"
+    path: ["Lahore", "Khajwa"]
+    style: "broken"
+    color: "#8B0000"
+    label_above: "Aurangzib"
+    label_below: "Oct 1658"
+    rad: 0.35
+
   # -----------------------------------------------------------------------
   # MURAD BAKHSH — ALLIED ADVANCE FROM GUJARAT
   # -----------------------------------------------------------------------
