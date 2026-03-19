@@ -5,9 +5,9 @@ See [motivation](motivation.md).
 
 ## Example Maps
 
-| Sack of Hyderabad (1656) | War of succession-1 (1658) | Persia and India (1650) |
+| Sack of Hyderabad (1656) | War of succession (1658) | Persia and India (1650) |
 |:------------------------:|:--------------------------:|:--------------------:|
-| ![Sack of Hyderabad](sack-of-hyderabad-1656.png) | ![War of Succession 1](war-of-succession-1.png) | ![Persia and India](persia-india-1650.png) |
+| ![Sack of Hyderabad](sack-of-hyderabad-1656.png) | ![War of Succession](war-of-succession.png) | ![Persia and India](persia-india-1650.png) |
 
 ## Features
 
