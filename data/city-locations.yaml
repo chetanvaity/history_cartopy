@@ -118,7 +118,16 @@ locations:
   # CENTRAL ASIA
   # ===========================================================================
   Bukhara: [64.42, 39.77]          # Uzbek khanate capital
-  Balkh: [66.90, 36.76]            # Northern Afghan trading city
-  Samarkhand: [66.96, 39.65]       # Timurid capital
+  Samarkand: [66.96, 39.65]        # Timurid/Uzbek city; Mughal ancestral homeland
+  Samarkhand: [66.96, 39.65]       # Timurid capital (legacy spelling)
+  Termez: [67.28, 37.22]           # Mughal garrison on the Amu Darya (Oxus)
+  Balkh: [66.90, 36.76]            # Northern Afghan trading city; Mughal objective 1646-47
+  Aqcha: [66.18, 36.90]            # Uzbek town west of Balkh; battle Jun 1647
+  Maimana: [64.77, 35.93]          # Mughal western garrison, Balkh campaign 1646-47
+  Qunduz: [68.87, 36.73]           # Mughal eastern garrison; key junction town
+  Taleqan: [69.53, 36.73]          # Mughal garrison in Badakhshan foothills
+  Khulm: [67.69, 36.71]            # Town on route between Qunduz and Balkh (Tashkurgan)
+  Ghori: [68.45, 35.70]            # Hindu Kush approach town; Mughal army passed Oct 1647
+  Bamiyan: [67.82, 34.83]          # Valley town in the Hindu Kush
   Kashghar: [75.99, 39.47]         # Silk Road city, western Tarim Basin
   Herat: [62.20, 34.34]            # Western Afghan crossroads

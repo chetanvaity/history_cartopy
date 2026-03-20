@@ -1,0 +1,205 @@
+# Aurangzeb's Balkh Campaign, 1647
+#
+# Shah Jahan's son Aurangzeb governs Balkh and Badakhshan and leads a
+# campaign against the Uzbek Khanate of Bukhara. Despite tactical victories
+# at Dera-i-Gaz and Aqcha, the Mughals withdraw after one gruelling season,
+# having spent four crore rupees and gained nothing.
+
+metadata:
+  title: "Aurangzeb in Balkh"
+  subtitle: "The Mughal Campaign in Central Asia, 1647"
+  title_position: "top-left"
+  year: 1647
+  extent: [58, 82, 26, 43]
+  resolution: "high"
+  output: "balkh-campaign-1647.png"
+  dimensions: [3600, 2400]
+  graticule: true
+  scale_bar: true
+
+labels:
+  cities:
+    # Major centres
+    - name: "Kabul"
+      level: 1                         # Mughal staging base
+    - name: "Balkh"
+      level: 2                         # The campaign objective
+    - name: "Bukhara"
+      level: 1                         # Uzbek capital; seat of Abdul Aziz Khan
+    - name: "Samarkand"
+      level: 2                         # Timurid ancestral city; Shah Jahan's longed-for prize
+
+    # Mughal garrison chain established 1646
+    - name: "Qunduz"
+      level: 3
+    - name: "Khulm"
+      level: 3
+    - name: "Termez"
+      level: 3
+    - name: "Taleqan"
+      level: 3
+    - name: "Maimana"
+      level: 3
+
+    # Route waypoints
+    #- name: "Aqcha"
+    #  level: 3
+    - name: "Ghori"
+      level: 3
+    - name: "Bamiyan"
+      level: 3
+
+    # Other regional cities for orientation
+    - name: "Kandahar"
+      level: 3
+    - name: "Herat"
+      level: 3
+
+    # Mughal heartland
+    - name: "Lahore"
+      level: 2
+    - name: "Delhi"
+      level: 2
+    - name: "Agra"
+      level: 1
+    - name: "Peshawar"
+      level: 3
+    - name: "Multan"
+      level: 3
+    - name: "Jodhpur"
+      level: 3
+    - name: "Ajmer"
+      level: 3
+
+  rivers:
+    - name: "Amu Darya"
+      hint_coords: [66.5, 37.8]
+      display_as: "Amu Darya (Oxus)"
+      gap: 14
+    - name: "Indus"
+      hint_coords: [71.0, 32.5]
+    - name: "Ganges"
+      hint_coords: [79.0, 27.5]
+      display_as: "Ganga"
+
+  regions:
+    - name: "HINDU KUSH"
+      coords: [67.5, 34.6]
+      rotation: -18
+    - name: "BADAKHSHAN"
+      coords: [71.5, 37.2]
+      rotation: 0
+    - name: "TRANSOXIANA"
+      coords: [65.5, 40.2]
+      rotation: 0
+    - name: "KHORASAN"
+      coords: [62.5, 36.0]
+      rotation: 0
+    - name: "KASHMIR"
+      coords: [76.0, 34.2]
+      rotation: 0
+    - name: "PUNJAB"
+      coords: [73.5, 31.0]
+      rotation: 0
+    - name: "RAJPUTANA"
+      coords: [73.5, 27.5]
+      rotation: 0
+    - name: "BALOCHISTAN"
+      coords: [64.0, 30.5]
+      rotation: 0
+
+campaigns:
+  # ---------------------------------------------------------------------------
+  # 1646 — MURAD BAKHSH'S INITIAL ADVANCE (context / background)
+  # ---------------------------------------------------------------------------
+  # Murad captured Balkh in July 1646 but abandoned his command. The 1646
+  # force established the garrison chain that Aurangzeb inherited.
+
+  # - name: "Murad 1646: Kabul to Balkh"
+  #   path: ["Kabul", [68.2, 35.6], "Qunduz", "Balkh"]
+  #   style: "march"
+  #   color: "#9B7B3A"                   # Muted ochre — earlier, secondary campaign
+  #   label_above: "Murad Bakhsh, 1646"
+  #   rad: -0.1
+
+  # ---------------------------------------------------------------------------
+  # 1647 — AURANGZEB'S CAMPAIGN
+  # ---------------------------------------------------------------------------
+
+  # Main advance: Kabul → Hindu Kush → Balkh  (Apr–May 1647)
+  - name: "Aurangzeb: Kabul to Balkh"
+    path: ["Kabul", [68.5, 35.3], "Ghori", "Qunduz", "Balkh"]
+    style: "power"
+    color: "#8B0000"
+    rad: 0.15
+
+  # Sweep northwest to Aqcha (Jun 1647)
+  - name: "Aurangzeb: Balkh to Aqcha"
+    path: ["Balkh", "Aqcha"]
+    style: "march"
+    color: "#8B0000"
+    rad: 0.2
+
+  # Mughal withdrawal through the Ghazniyak Pass (Oct–Nov 1647)
+  # - name: "Mughal retreat: Balkh to Kabul"
+  #   path: ["Balkh", "Ghori", [68.0, 34.9], "Kabul"]
+  #   style: "retreat"
+  #   color: "#8B0000"
+  #   label_above: "Withdrawal"
+  #   label_below: "Oct–Nov 1647"
+  #   rad: -0.2
+
+  # ---------------------------------------------------------------------------
+  # UZBEK — PRESSURE FROM BUKHARA
+  # ---------------------------------------------------------------------------
+
+  - name: "Abdul Aziz: Bukhara advance"
+    path: ["Bukhara", [66.2, 37.8], "Balkh"]
+    style: "march"
+    color: "#2C4A8A"                   # Uzbek blue
+    label_above: "Abdul Aziz Khan"
+    label_below: "Khanate of Bukhara"
+    rad: -0.25
+
+events:
+  # Battle of Dera-i-Gaz Valley — first major Uzbek ambush in the passes
+  - text: "Dera-i-Gaz"
+    subtext: "21 May 1647"
+    coords: [68.55, 35.25]
+    icon: "battle"
+
+  # Battle of Aqcha — Subhan Quli's main assault repulsed
+  - text: "Aqcha"
+    subtext: "1–7 Jun 1647"
+    location: "Aqcha"
+    icon: "battle"
+
+narrative:
+  position: "top-right"
+  width: 0.38
+  items:
+    - label: false
+      text: >
+        Shah Jahan dreamed of recovering Samarkand — the ancestral Timurid homeland.
+        Nazar Muhammad Khan, king of the vast kingdom of Bukhara was weak
+        and incompetent. When rebellions broke out in various of Bukhara's provinces, Shah Jahan seized the chance.
+        A first force under Murad Bakhsh captured Balkh in July 1646 but Murad
+        abandoned his command, leaving a winter garrison stranded.
+
+    - label: false
+      text: >
+        In January 1647, Aurangzeb — 29 years old — was given the governorship
+        and marched north from Kabul with 35,000 troops. He shattered an Uzbek ambush in
+        the Hindu Kush defiles at Dera-i-Gaz, entered Balkh on 25 May, then swept
+        northwest to rout Subhan Quli's forces at Aqcha (1–7 June).
+
+    - label: false
+      text: >
+        Yet, the position was hopeless. Some 120,000 Uzbek horsemen refused pitched battle
+        and raided supply lines; the province yielded almost no revenue; senior commanders
+        secretly dragged their feet. A compromise was reached and Balkh was surrendered
+        on 1 October. The retreat through
+        the Ghazniyak Pass was brutal — the rearguard crossed in a blizzard, the last men
+        reaching Kabul on 10 November. Four crore rupees, 5,000 lives, nothing gained.
+
+  reference: "Jadunath Sarkar, History of Aurangzib, Vol. I (1912)"
